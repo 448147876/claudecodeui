@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>创建管理员 · CloudCLI</title>
+<link rel="stylesheet" href="/__gw/static/gw.css">
+</head>
+<body>
+<main class="card">
+  <h1>创建管理员</h1>
+  <p class="muted">首次使用，请创建管理员账号。管理员的工作目录是整个 home，并可以管理其他账号。</p>
+  <form id="form">
+    <label for="username">用户名</label>
+    <input id="username" name="username" autocomplete="username" pattern="[A-Za-z0-9_\-]{3,32}" title="3–32 位字母、数字、- 或 _" required autofocus>
+    <label for="password">密码</label>
+    <input id="password" name="password" type="password" autocomplete="new-password" minlength="6" required>
+    <label for="confirm">确认密码</label>
+    <input id="confirm" name="confirm" type="password" autocomplete="new-password" minlength="6" required>
+    <button class="primary block" type="submit">创建并进入</button>
+    <div class="error" id="error" role="alert"></div>
+  </form>
+</main>
+<script>
+  const form = document.getElementById('form');
+  const errorBox = document.getElementById('error');
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    errorBox.textContent = '';
+    if (form.password.value !== form.confirm.value) {
+      errorBox.textContent = '两次输入的密码不一致';
+      return;
+    }
+    const button = form.querySelector('button');
+    button.disabled = true;
+    try {
+      const response = await fetch('/__gw/api/setup', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username: form.username.value.trim(), password: form.password.value }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || '创建失败');
+      location.replace(result.next || '/');
+    } catch (error) {
+      errorBox.textContent = error.message;
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

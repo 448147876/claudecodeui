@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>登录 · CloudCLI</title>
+<link rel="stylesheet" href="/__gw/static/gw.css">
+</head>
+<body>
+<main class="card">
+  <h1>登录 CloudCLI</h1>
+  <p class="muted">每个账号对应一个项目工作区</p>
+  <form id="form" autocomplete="on">
+    <label for="username">用户名</label>
+    <input id="username" name="username" autocomplete="username" required autofocus>
+    <label for="password">密码</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required>
+    <button class="primary block" type="submit">登录</button>
+    <div class="error" id="error" role="alert"></div>
+  </form>
+</main>
+<script>
+  const form = document.getElementById('form');
+  const errorBox = document.getElementById('error');
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const button = form.querySelector('button');
+    button.disabled = true;
+    errorBox.textContent = '';
+    try {
+      const next = new URLSearchParams(location.search).get('next') || '/';
+      const response = await fetch('/__gw/api/login', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username: form.username.value.trim(), password: form.password.value, next }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(result.error || '登录失败');
+      location.replace(result.next || '/');
+    } catch (error) {
+      errorBox.textContent = error.message;
+      button.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

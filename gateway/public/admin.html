@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>账号管理 · CloudCLI</title>
+<link rel="stylesheet" href="/__gw/static/gw.css">
+</head>
+<body>
+<main class="card wide">
+  <header class="top">
+    <div>
+      <h1>账号管理</h1>
+      <p class="muted">每个普通账号绑定一个工作目录，只能看到该目录下的项目和会话。删除账号不会删除工作目录和 Claude 对话记录。</p>
+    </div>
+    <div class="row"><a href="/">返回主界面</a><a href="/__gw/logout">退出登录</a></div>
+  </header>
+
+  <h2 style="font-size:16px;margin:20px 0 0">新增账号</h2>
+  <form id="create">
+    <div class="grid">
+      <div><label for="username">用户名</label><input id="username" name="username" pattern="[A-Za-z0-9_\-]{3,32}" title="3–32 位字母、数字、- 或 _" required></div>
+      <div><label for="password">密码</label><input id="password" name="password" type="password" minlength="6" autocomplete="new-password" required></div>
+      <div><label for="workspaceRoot">工作目录</label><input id="workspaceRoot" name="workspaceRoot" placeholder="留空则使用默认目录"></div>
+      <div><label for="note">备注</label><input id="note" name="note" maxlength="200"></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button class="primary" type="submit">新增</button><span class="error" id="createError"></span><span class="notice" id="createNotice"></span></div>
+  </form>
+
+  <table>
+    <thead><tr><th>用户名</th><th>工作目录</th><th>备注</th><th>创建时间</th><th>进程</th><th>操作</th></tr></thead>
+    <tbody id="rows"><tr><td colspan="6" class="muted">加载中…</td></tr></tbody>
+  </table>
+  <div class="error" id="listError"></div>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const escapeHtml = (value) => String(value ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const STATE_LABEL = { running: '运行中', starting: '启动中', stopping: '停止中', stopped: '未启动', failed: '启动失败' };
+
+  async function api(method, url, body) {
+    const response = await fetch(url, { method, headers: body ? { 'content-type': 'application/json' } : {}, body: body ? JSON.stringify(body) : undefined });
+    const result = await response.json().catch(() => ({}));
+    if (response.status === 401) location.replace('/__gw/login?next=/__gw/admin');
+    if (!response.ok) throw new Error(result.error || `请求失败（${response.status}）`);
+    return result;
+  }
+
+  let defaultRoot = '';
+  async function load() {
+    try {
+      const { accounts, workspacesRoot } = await api('GET', '/__gw/api/accounts');
+      defaultRoot = workspacesRoot;
+      updatePlaceholder();
+      $('rows').innerHTML = accounts.map((account) => {
+        const state = account.process.state;
+        const actions = account.role === 'admin'
+          ? '<span class="muted">管理员</span>'
+          : `<div class="row"><button data-action="password" data-user="${escapeHtml(account.username)}">重置密码</button><button data-action="reindex" data-user="${escapeHtml(account.username)}" title="内部用户不一致时使用：删除该账号的索引库并重建">重建索引</button><button class="danger" data-action="delete" data-user="${escapeHtml(account.username)}">删除</button></div>`;
+        return `<tr><td>${escapeHtml(account.username)}</td><td><code>${escapeHtml(account.workspaceRoot)}</code></td><td>${escapeHtml(account.note)}</td><td>${escapeHtml(account.createdAt)}</td><td><span class="badge ${escapeHtml(state)}" title="${escapeHtml(account.process.error || '')}">${STATE_LABEL[state] || escapeHtml(state)}</span></td><td>${actions}</td></tr>`;
+      }).join('');
+      $('listError').textContent = '';
+    } catch (error) {
+      $('listError').textContent = error.message;
+    }
+  }
+
+  function updatePlaceholder() {
+    const name = $('username').value.trim();
+    $('workspaceRoot').placeholder = defaultRoot ? `${defaultRoot}/${name || '<用户名>'}` : '留空则使用默认目录';
+  }
+  $('username').addEventListener('input', updatePlaceholder);
+
+  $('create').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    $('createError').textContent = '';
+    $('createNotice').textContent = '';
+    try {
+      const result = await api('POST', '/__gw/api/accounts', {
+        username: form.username.value.trim(),
+        password: form.password.value,
+        workspaceRoot: form.workspaceRoot.value.trim(),
+        note: form.note.value.trim(),
+      });
+      form.reset();
+      $('createNotice').textContent = `已创建，工作目录 ${result.workspaceRoot}${result.warnings?.length ? '；注意：' + result.warnings.join('；') : ''}`;
+      load();
+    } catch (error) {
+      $('createError').textContent = error.message;
+    }
+  });
+
+  $('rows').addEventListener('click', async (event) => {
+    const button = event.target.closest('button[data-action]');
+    if (!button) return;
+    const user = button.dataset.user;
+    try {
+      if (button.dataset.action === 'password') {
+        const password = prompt(`为 ${user} 设置新密码（至少 6 位）：`);
+        if (!password) return;
+        await api('POST', `/__gw/api/accounts/${encodeURIComponent(user)}/password`, { password });
+        alert('密码已重置，该账号已登录的浏览器需要重新登录');
+      } else if (button.dataset.action === 'reindex') {
+        if (!confirm(`重建 ${user} 的索引？会话自定义名称、收藏等索引数据会丢失，对话记录本身不受影响。`)) return;
+        await api('POST', `/__gw/api/accounts/${encodeURIComponent(user)}/reindex`);
+      } else if (button.dataset.action === 'delete') {
+        if (!confirm(`删除账号 ${user}？工作目录和 Claude 对话记录会保留。`)) return;
+        await api('DELETE', `/__gw/api/accounts/${encodeURIComponent(user)}`);
+      }
+      load();
+    } catch (error) {
+      alert(error.message);
+    }
+  });
+
+  load();
+  setInterval(load, 10000);
+</script>
+</body>
+</html>

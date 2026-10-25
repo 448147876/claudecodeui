@@ -6,7 +6,8 @@
   "type": "module",
   "main": "dist-server/server/index.js",
   "bin": {
-    "cloudcli": "dist-server/server/modules/cli/cli.js"
+    "cloudcli": "dist-server/server/modules/cli/cli.js",
+    "cloudcli-multi": "gateway/bin.mjs"
   },
   "files": [
     "electron/",
@@ -15,6 +16,7 @@
     "public/api-docs.html",
     "dist/",
     "dist-server/",
+    "gateway/",
     "scripts/",
     "README.md"
   ],
@@ -55,6 +57,8 @@
     "lint:client": "oxlint src/",
     "lint:fix": "oxlint src/ server/ --fix",
     "start": "npm run build && npm run server",
+    "build:multi": "npm run build:client && node gateway/scripts/build-server.mjs",
+    "multi": "node gateway/bin.mjs start",
     "release": "./release.sh",
     "prepublishOnly": "npm run build",
     "postinstall": "node scripts/fix-node-pty.js",

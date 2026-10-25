@@ -1,0 +1,29 @@
+:root { color-scheme: light dark; --bg: #f6f7f9; --card: #fff; --fg: #1f2328; --muted: #656d76; --border: #d0d7de; --primary: #0969da; --danger: #cf222e; --ok: #1a7f37; }
+@media (prefers-color-scheme: dark) { :root { --bg: #0d1117; --card: #161b22; --fg: #e6edf3; --muted: #8b949e; --border: #30363d; --primary: #4493f8; --danger: #f85149; --ok: #3fb950; } }
+* { box-sizing: border-box; }
+body { margin: 0; min-height: 100vh; background: var(--bg); color: var(--fg); font: 14px/1.6 system-ui, -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; display: flex; align-items: flex-start; justify-content: center; padding: 8vh 16px; }
+.card { width: 100%; max-width: 380px; background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 28px; }
+.card.wide { max-width: 1040px; }
+h1 { font-size: 20px; margin: 0 0 4px; }
+.muted { color: var(--muted); font-size: 13px; }
+label { display: block; margin: 14px 0 4px; font-weight: 600; font-size: 13px; }
+input { width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: inherit; font: inherit; }
+input:focus { outline: 2px solid var(--primary); outline-offset: -1px; }
+button { padding: 8px 14px; border: 1px solid var(--border); border-radius: 6px; background: var(--card); color: inherit; font: inherit; cursor: pointer; }
+button.primary { background: var(--primary); border-color: var(--primary); color: #fff; }
+button.danger { color: var(--danger); }
+button:disabled { opacity: .6; cursor: default; }
+.block { width: 100%; margin-top: 20px; }
+.error { color: var(--danger); min-height: 20px; margin-top: 10px; font-size: 13px; }
+.notice { color: var(--ok); font-size: 13px; }
+table { width: 100%; border-collapse: collapse; margin-top: 12px; }
+th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); vertical-align: top; font-size: 13px; }
+th { color: var(--muted); font-weight: 600; }
+code { font: 12.5px ui-monospace, Menlo, monospace; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0 12px; }
+.badge { display: inline-block; padding: 0 8px; border-radius: 10px; font-size: 12px; border: 1px solid var(--border); }
+.badge.running { color: var(--ok); border-color: var(--ok); }
+.badge.failed { color: var(--danger); border-color: var(--danger); }
+header.top { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+a { color: var(--primary); }

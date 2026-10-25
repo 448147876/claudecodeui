@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<title>已退出 · CloudCLI</title>
+<link rel="stylesheet" href="/__gw/static/gw.css">
+</head>
+<body>
+<main class="card">
+  <h1>已退出登录</h1>
+  <p class="muted">正在返回登录页…</p>
+</main>
+<script>
+  try { localStorage.clear(); } catch (error) { /* storage disabled */ }
+  try { sessionStorage.clear(); } catch (error) { /* storage disabled */ }
+  location.replace('/__gw/login');
+</script>
+</body>
+</html>
