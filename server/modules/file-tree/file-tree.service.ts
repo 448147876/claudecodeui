@@ -42,6 +42,7 @@ const COMMON_WORKSPACE_DIRECTORY_NAMES = [
 // File Tree consumes this guard when recursively listing a project so a very
 // broad workspace (for example, a user's home directory) cannot exhaust the
 // server heap before the browser has a chance to switch to a narrower project.
+// cloudcli-multi: deployments may raise it through dependencies.maximumFileTreeEntries.
 const MAXIMUM_FILE_TREE_ENTRIES = 10_000;
 
 type FileTreeEntryFilter = (entryPath: string, isDirectory: boolean) => boolean;
@@ -181,13 +182,21 @@ function createGitignoreEntryFilter(
  * Every filesystem, project, workspace, environment, and logging dependency is
  * required explicitly so this service has no machine-wide production defaults.
  */
-export function createFileTreeService(dependencies: FileTreeServiceDependencies): FileTreeServices {
+export function createFileTreeService(
+  // cloudcli-multi: optional cap on visible entries in one recursive listing; omitted keeps the 10,000 default.
+  dependencies: FileTreeServiceDependencies & { maximumFileTreeEntries?: number },
+): FileTreeServices {
   const fileSystem = dependencies.fileSystem;
   const concurrencyLimit = Number.isFinite(dependencies.fileSystemConcurrency)
     && dependencies.fileSystemConcurrency > 0
     ? Math.floor(dependencies.fileSystemConcurrency)
     : 1;
   const { acquire, release } = createConcurrencyLimiter(concurrencyLimit);
+  // cloudcli-multi: configurable tree cap; invalid or missing values keep the upstream default.
+  const maximumFileTreeEntries = Number.isFinite(dependencies.maximumFileTreeEntries)
+    && (dependencies.maximumFileTreeEntries ?? 0) > 0
+    ? Math.floor(dependencies.maximumFileTreeEntries as number)
+    : MAXIMUM_FILE_TREE_ENTRIES;
 
   async function resolveProjectRoot(projectId: string): Promise<string> {
     const projectRoot = await dependencies.projects.getProjectPathById(projectId);
@@ -224,7 +233,7 @@ export function createFileTreeService(dependencies: FileTreeServiceDependencies)
         // applies to the whole tree rather than per directory.
         if (remainingEntries.value <= 0) {
           throw createFileTreeError(
-            `Project file tree exceeds the ${MAXIMUM_FILE_TREE_ENTRIES.toLocaleString()} entry limit. Choose a narrower project directory or add ignore rules.`,
+            `Project file tree exceeds the ${maximumFileTreeEntries.toLocaleString()} entry limit. Choose a narrower project directory or add ignore rules.`,
             413,
             'FILE_TREE_TOO_LARGE',
           );
@@ -254,7 +263,7 @@ export function createFileTreeService(dependencies: FileTreeServiceDependencies)
     maximumDepth: number,
     currentDepth = 0,
     includeEntry: FileTreeEntryFilter = includeEntryByFallbackDirectoryNames,
-    remainingEntries = { value: MAXIMUM_FILE_TREE_ENTRIES },
+    remainingEntries = { value: maximumFileTreeEntries },
   ): Promise<FileTreeNode[]> {
     const visibleEntries = await collectVisibleEntries(directoryPath, includeEntry, remainingEntries);
 

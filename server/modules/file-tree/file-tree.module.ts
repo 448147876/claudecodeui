@@ -28,6 +28,12 @@ function readFileSystemConcurrency(): number {
     : 64;
 }
 
+// cloudcli-multi: CLOUDCLI_FILE_TREE_MAX_ENTRIES raises the recursive listing cap; unset keeps the service default.
+function readMaximumFileTreeEntries(): number | undefined {
+  const configuredMaximum = Number.parseInt(process.env.CLOUDCLI_FILE_TREE_MAX_ENTRIES ?? '', 10);
+  return Number.isFinite(configuredMaximum) && configuredMaximum > 0 ? configuredMaximum : undefined;
+}
+
 /**
  * Production filesystem adapter owned by the File Tree composition root.
  * Application services receive this complete capability explicitly and never
@@ -91,6 +97,7 @@ const fileTreeServices = createFileTreeService({
   workspace: fileTreeWorkspace,
   resolveMimeType: (filePath) => mime.lookup(filePath) || 'application/octet-stream',
   fileSystemConcurrency: readFileSystemConcurrency(),
+  maximumFileTreeEntries: readMaximumFileTreeEntries(),
   logger: fileTreeLogger,
 });
 

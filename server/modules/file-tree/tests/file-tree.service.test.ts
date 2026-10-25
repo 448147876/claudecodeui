@@ -331,6 +331,29 @@ test('listProjectFiles shares the entry limit across nested directories', async 
   );
 });
 
+// cloudcli-multi: the cap is configurable through dependencies.maximumFileTreeEntries.
+test('listProjectFiles honours a configured entry limit above and below the default', async () => {
+  const projectRoot = path.resolve('file-tree-test-project');
+  const fileSystem = createFakeFileSystem({
+    access: async () => undefined,
+    openDirectory: createDirectoryReader((directoryPath) => directoryPath === projectRoot
+      ? Array.from({ length: 10_001 }, (_, index) => createDirectoryEntry(`file-${index}.txt`, false))
+      : []),
+    lstat: async () => createStats(false, 0o644),
+  });
+
+  const raised = createFileTreeService({ ...createDependencies(fileSystem, projectRoot), maximumFileTreeEntries: 50_000 });
+  assert.equal((await raised.listProjectFiles('project-1')).length, 10_001);
+
+  const lowered = createFileTreeService({ ...createDependencies(fileSystem, projectRoot), maximumFileTreeEntries: 100 });
+  await assert.rejects(
+    lowered.listProjectFiles('project-1'),
+    (error: unknown) => error instanceof AppError
+      && error.code === 'FILE_TREE_TOO_LARGE'
+      && error.message.includes('100 entry limit'),
+  );
+});
+
 test('readTextFile rejects traversal before invoking the filesystem adapter', async () => {
   const projectRoot = path.resolve('file-tree-test-project');
   const readPaths: string[] = [];
