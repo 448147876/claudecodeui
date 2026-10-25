@@ -14,6 +14,7 @@ import type {
   FileTreeProjectGateway,
   FileTreeWorkspaceGateway,
 } from '@/shared/types.js';
+import { isReadOnlyPathAllowed } from '@/shared/isolation.js';
 import { WORKSPACES_ROOT, resolveReadOnlyRootPath, validateWorkspacePath } from '@/shared/utils.js';
 
 const MAXIMUM_UPLOAD_SIZE_MEGABYTES = 200;
@@ -73,7 +74,11 @@ const fileTreeProjects: FileTreeProjectGateway = {
 const fileTreeWorkspace: FileTreeWorkspaceGateway = {
   rootPath: WORKSPACES_ROOT,
   validatePath: (candidatePath) => validateWorkspacePath(candidatePath),
-  resolveReadOnlyRootPath: (candidatePath) => resolveReadOnlyRootPath(candidatePath),
+  // cloudcli-multi: only this account's transcripts stay readable under ~/.claude/projects.
+  resolveReadOnlyRootPath: async (candidatePath) => {
+    const resolved = await resolveReadOnlyRootPath(candidatePath);
+    return isReadOnlyPathAllowed(resolved) ? resolved : null;
+  },
 };
 
 const fileTreeLogger: FileTreeLogger = {

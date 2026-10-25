@@ -14,6 +14,7 @@ import path from 'path';
 import express from 'express';
 
 import { WS_OPEN_STATE, connectedClients } from '@/modules/websocket/index.js';
+import { isPlainFileName, isRequestedPathAllowed } from '@/shared/isolation.js';
 
 import type { createTaskmasterService } from './taskmaster.service.js';
 // cross-spawn: drop-in spawn with Windows .cmd/PATHEXT resolution — required
@@ -269,6 +270,10 @@ export function createTaskmasterRouter(dependencies: TaskmasterRouterDependencie
             }
 
             // Read and parse tasks file
+            // cloudcli-multi: follow symbolic links before reading; a link out of the workspace is refused.
+            if (!isRequestedPathAllowed(tasksFilePath)) {
+                return res.status(403).json({ error: 'Access denied', message: 'File is outside this account\'s workspace' });
+            }
             try {
                 const tasksContent = await fsPromises.readFile(tasksFilePath, 'utf8');
                 const tasksData = JSON.parse(tasksContent);
@@ -514,6 +519,10 @@ export function createTaskmasterRouter(dependencies: TaskmasterRouterDependencie
     router.get('/prd/:projectId/:fileName', async (req, res) => {
         try {
             const { projectId, fileName } = req.params;
+            // cloudcli-multi: a doc name must not reach outside .taskmaster/docs.
+            if (!isPlainFileName(fileName)) {
+                return res.status(400).json({ error: 'Invalid file name', message: 'fileName must be a plain file name' });
+            }
 
             const projectPath = await resolveProjectPathFromId(projectId);
             if (!projectPath) {
@@ -536,6 +545,10 @@ export function createTaskmasterRouter(dependencies: TaskmasterRouterDependencie
             }
 
             // Read file content
+            // cloudcli-multi: follow symbolic links before reading; a link out of the workspace is refused.
+            if (!isRequestedPathAllowed(filePath)) {
+                return res.status(403).json({ error: 'Access denied', message: 'File is outside this account\'s workspace' });
+            }
             try {
                 const content = await fsPromises.readFile(filePath, 'utf8');
                 const stats = await fsPromises.stat(filePath);
@@ -824,6 +837,10 @@ export function createTaskmasterRouter(dependencies: TaskmasterRouterDependencie
         try {
             const { projectId } = req.params;
             const { fileName = 'prd.txt', numTasks, append = false } = req.body;
+            // cloudcli-multi: a doc name must not reach outside .taskmaster/docs.
+            if (!isPlainFileName(fileName)) {
+                return res.status(400).json({ error: 'Invalid file name', message: 'fileName must be a plain file name' });
+            }
 
             const projectPath = await resolveProjectPathFromId(projectId);
             if (!projectPath) {
@@ -1350,6 +1367,10 @@ Description of the business problem, data sources, and expected insights.
         try {
             const { projectId } = req.params;
             const { templateId, fileName = 'prd.txt', customizations = {} } = req.body;
+            // cloudcli-multi: a doc name must not reach outside .taskmaster/docs.
+            if (!isPlainFileName(fileName)) {
+                return res.status(400).json({ error: 'Invalid file name', message: 'fileName must be a plain file name' });
+            }
 
             if (!templateId) {
                 return res.status(400).json({

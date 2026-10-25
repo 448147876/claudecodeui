@@ -4,6 +4,7 @@ import path from "path";
 import express from "express";
 
 import { parseFrontMatter } from "../../shared/frontmatter.js";
+import { isCommandFileAllowed, isRequestedPathAllowed } from "../../shared/isolation.js";
 
 type CommandsRouterDependencies = {
   fileSystem: typeof import('node:fs/promises');
@@ -463,6 +464,10 @@ Custom commands can be created in:
 router.post("/list", async (req, res) => {
   try {
     const { projectPath } = req.body;
+    // cloudcli-multi: project commands outside this account's workspace are off limits.
+    if (projectPath && !isRequestedPathAllowed(projectPath)) {
+      return res.status(403).json({ error: "Access denied", message: "Project path is outside this account's workspace" });
+    }
     const allCommands = [...builtInCommands];
 
     // Scan project-level commands (.claude/commands/)
@@ -519,6 +524,10 @@ router.post("/list", async (req, res) => {
 router.post("/execute", async (req, res) => {
   try {
     const { commandName, commandPath, rawArgs, context = {} } = req.body;
+    // cloudcli-multi: commands may only run against a project inside this account's workspace.
+    if (context?.projectPath && !isRequestedPathAllowed(context.projectPath)) {
+      return res.status(403).json({ error: "Access denied", message: "Project path is outside this account's workspace" });
+    }
     // A client that sends only `rawArgs` still gets `$1`, `$2`, … from its
     // whitespace-split tokens.
     const args = req.body.args
@@ -577,6 +586,13 @@ router.post("/execute", async (req, res) => {
         return res.status(403).json({
           error: "Access denied",
           message: "Command must be in .claude/commands directory",
+        });
+      }
+      // cloudcli-multi: the check above is textual; this one follows symbolic links.
+      if (!isCommandFileAllowed(commandPath)) {
+        return res.status(403).json({
+          error: "Access denied",
+          message: "Command file is outside this account's workspace",
         });
       }
     }

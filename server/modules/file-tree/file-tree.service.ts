@@ -9,6 +9,7 @@ import type {
   FileTreeServices,
   FileTreeUploadedFile,
 } from '@/shared/types.js';
+import { assertProjectFilePathAllowed } from '@/shared/isolation.js';
 import {
   AppError,
   FORBIDDEN_WORKSPACE_PATHS,
@@ -102,6 +103,9 @@ function resolvePathInsideProject(projectRoot: string, targetPath: string): stri
   if (!resolvedPath.startsWith(normalizedProjectRoot)) {
     throw createFileTreeError('Path must be under project root', 403, 'PATH_OUTSIDE_PROJECT');
   }
+
+  // cloudcli-multi: no file API access to .git (git runs commands from its config and hooks).
+  assertProjectFilePathAllowed(projectRoot, resolvedPath);
 
   return resolvedPath;
 }

@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import path from 'node:path';
 
 import { getConnection } from '@/modules/database/connection.js';
+import { assertRequestedPathAllowed } from '@/shared/isolation.js';
 import type { CreateProjectPathResult, ProjectRepositoryRow } from '@/shared/types.js';
 import { normalizeProjectPath } from '@/shared/utils.js';
 
@@ -17,6 +18,8 @@ function normalizeProjectDisplayName(projectPath: string, customProjectName: str
 
 export const projectsDb = {
     createProjectPath(projectPath: string, customProjectName: string | null = null): CreateProjectPathResult {
+        // cloudcli-multi: refuse to register a project outside this account's workspace.
+        assertRequestedPathAllowed(projectPath);
         const db = getConnection();
         const normalizedProjectPath = normalizeProjectPath(projectPath);
         const normalizedProjectName = normalizeProjectDisplayName(normalizedProjectPath, customProjectName);

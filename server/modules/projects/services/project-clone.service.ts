@@ -7,6 +7,7 @@ import spawn from 'cross-spawn';
 import { githubTokensDb } from '@/modules/database/index.js';
 import { createProject } from '@/modules/projects/services/project-management.service.js';
 import type { WorkspacePathValidationResult } from '@/shared/types.js';
+import { isAllowedCloneSource } from '@/shared/isolation.js';
 import { AppError, validateWorkspacePath } from '@/shared/utils.js';
 
 type CloneProjectInput = {
@@ -228,6 +229,14 @@ export async function startCloneProject(
   if (normalizedGithubUrl.startsWith('-')) {
     throw new AppError('Invalid githubUrl', {
       code: 'INVALID_GITHUB_URL',
+      statusCode: 400,
+    });
+  }
+
+  // cloudcli-multi: a local path or file:// source would copy any repository on the machine.
+  if (!isAllowedCloneSource(normalizedGithubUrl)) {
+    throw new AppError('Only remote repository URLs can be cloned in this account', {
+      code: 'CLONE_SOURCE_NOT_ALLOWED',
       statusCode: 400,
     });
   }

@@ -19,6 +19,7 @@ import type {
   ProviderPermissionDecision,
   ProviderRuntimeWriter,
 } from '@/shared/types.js';
+import { isRequestedPathAllowed } from '@/shared/isolation.js';
 import { parseIncomingJsonObject } from '@/shared/utils.js';
 
 /**
@@ -278,8 +279,9 @@ async function dispatchRun(
     images: uniqueAttachments.filter(isImageAttachmentDescriptor),
     files: uniqueAttachments.filter((descriptor) => !isImageAttachmentDescriptor(descriptor)),
     sessionId,
-    cwd: clientOptions.cwd ?? session.project_path ?? undefined,
-    projectPath: session.project_path ?? clientOptions.projectPath,
+    // cloudcli-multi: a client-supplied directory outside this account's workspace is ignored.
+    cwd: (isRequestedPathAllowed(clientOptions.cwd) ? clientOptions.cwd : undefined) ?? session.project_path ?? undefined,
+    projectPath: session.project_path ?? (isRequestedPathAllowed(clientOptions.projectPath) ? clientOptions.projectPath : undefined),
   };
 
   let failure: string | null = null;

@@ -4,6 +4,7 @@ import path from 'path';
 import express from 'express';
 
 import type { ProviderRunFunction } from '@/shared/types.js';
+import { isRequestedPathAllowed } from '@/shared/isolation.js';
 import { AppError, getGitErrorDetails } from '@/shared/utils.js';
 
 // cross-spawn: drop-in spawn with Windows .cmd/PATHEXT resolution.
@@ -291,6 +292,14 @@ async function resolveRepositoryFilePath(projectPath, filePath) {
 
   const repositoryRootPath = await getRepositoryRootPath(projectPath);
   const candidateFilePaths = buildFilePathCandidates(projectPath, repositoryRootPath, filePath);
+
+  // cloudcli-multi: validateFilePath above only rejects NUL here (no root is passed);
+  // a candidate must not leave this account's workspace.
+  for (const candidateFilePath of candidateFilePaths) {
+    if (!isRequestedPathAllowed(path.resolve(repositoryRootPath, candidateFilePath))) {
+      throw new Error("Invalid file path: outside this account's workspace");
+    }
+  }
 
   for (const candidateFilePath of candidateFilePaths) {
     const { stdout } = await spawnAsync('git', ['status', '--porcelain', '--', candidateFilePath], { cwd: repositoryRootPath });

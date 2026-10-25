@@ -5,6 +5,7 @@ import express from 'express';
 
 import type { ProviderRunFunction } from '@/shared/types.js';
 
+import { getIsolationRoot, isRequestedPathAllowed } from '../../shared/isolation.js';
 import { normalizeProjectPath } from '../../shared/utils.js';
 
 /** The providers an Agent API run can start: the ones with a runtime and a model catalog. */
@@ -886,6 +887,14 @@ export function createAgentRouter(dependencies: AgentRouterDependencies): expres
     // Validate inputs
     if (!githubUrl && !projectPath) {
       return res.status(400).json({ error: 'Either githubUrl or projectPath is required' });
+    }
+
+    // cloudcli-multi: check before any clone; the default clone target is outside the workspace.
+    if (getIsolationRoot() && !projectPath) {
+      return res.status(400).json({ error: 'projectPath is required in this account' });
+    }
+    if (projectPath && !isRequestedPathAllowed(projectPath)) {
+      return res.status(403).json({ error: "projectPath is outside this account's workspace" });
     }
 
     if (!message || !message.trim()) {

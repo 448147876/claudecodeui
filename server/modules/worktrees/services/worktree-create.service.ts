@@ -6,6 +6,7 @@ import type {
   GitCommandRunner,
   WorktreeFileSystem,
 } from '@/shared/types.js';
+import { assertRequestedPathAllowed } from '@/shared/isolation.js';
 import { AppError, normalizeProjectPath } from '@/shared/utils.js';
 import {
   listWorktreePorcelainEntries,
@@ -67,6 +68,9 @@ export async function createWorktree(
   const worktreePath = normalizeProjectPath(
     path.join(worktreesContainer, sanitizeBranchForDirectoryName(branch)),
   );
+
+  // cloudcli-multi: refuse before `git worktree add` creates anything outside the workspace.
+  assertRequestedPathAllowed(worktreePath);
 
   if (await fileSystem.pathExists(worktreePath)) {
     throw new AppError(`Folder already exists: ${worktreePath}`, {

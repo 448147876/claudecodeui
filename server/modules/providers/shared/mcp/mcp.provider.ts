@@ -1,11 +1,16 @@
 import path from 'node:path';
 
 import type { IProviderMcp } from '@/shared/interfaces.js';
+import { assertRequestedPathAllowed, defaultWorkspacePath } from '@/shared/isolation.js';
 import type { LLMProvider, McpScope, McpTransport, ProviderMcpServer, UpsertProviderMcpServerInput } from '@/shared/types.js';
 import { AppError } from '@/shared/utils.js';
 
-const resolveWorkspacePath = (workspacePath?: string): string =>
-  path.resolve(workspacePath ?? process.cwd());
+const resolveWorkspacePath = (workspacePath?: string): string => {
+  // cloudcli-multi: an explicit workspace outside this account's workspace is refused.
+  if (workspacePath) assertRequestedPathAllowed(workspacePath);
+  // Without one, upstream uses the install directory, which every account shares.
+  return path.resolve(workspacePath ?? defaultWorkspacePath());
+};
 
 const normalizeServerName = (name: string): string => {
   const normalized = name.trim();

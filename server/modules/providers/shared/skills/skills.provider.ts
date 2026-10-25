@@ -2,6 +2,7 @@ import path from 'node:path';
 import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
 
 import type { IProviderSkills } from '@/shared/interfaces.js';
+import { assertRequestedPathAllowed, defaultWorkspacePath } from '@/shared/isolation.js';
 import type {
   LLMProvider,
   ProviderSkillCreateInput,
@@ -18,8 +19,12 @@ import {
   AppError,
 } from '@/shared/utils.js';
 
-const resolveWorkspacePath = (workspacePath?: string): string =>
-  path.resolve(workspacePath ?? process.cwd());
+const resolveWorkspacePath = (workspacePath?: string): string => {
+  // cloudcli-multi: an explicit workspace outside this account's workspace is refused.
+  if (workspacePath) assertRequestedPathAllowed(workspacePath);
+  // Without one, upstream uses the install directory, which every account shares.
+  return path.resolve(workspacePath ?? defaultWorkspacePath());
+};
 
 const stripMarkdownExtension = (value: string): string => value.replace(/\.md$/i, '');
 

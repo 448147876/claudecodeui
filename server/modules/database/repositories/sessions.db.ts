@@ -1,5 +1,6 @@
 import { getConnection } from '@/modules/database/connection.js';
 import { projectsDb } from '@/modules/database/repositories/projects.db.js';
+import { isRecordedPathAllowed } from '@/shared/isolation.js';
 import { normalizeProjectPath } from '@/shared/utils.js';
 
 type SessionRow = {
@@ -89,6 +90,9 @@ export const sessionsDb = {
     updatedAt?: string,
     jsonlPath?: string | null
   ): string {
+    // cloudcli-multi: skip transcripts recorded outside this account's workspace.
+    // '' keeps the return type; synchronizers report it as "not indexed".
+    if (!isRecordedPathAllowed(projectPath)) return '';
     const db = getConnection();
     const createdAtValue = normalizeTimestamp(createdAt);
     const updatedAtValue = normalizeTimestamp(updatedAt);
