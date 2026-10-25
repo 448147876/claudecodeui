@@ -162,7 +162,7 @@ export const staticScenarios = [
       const base = process.env.CLOUDCLI_MULTI_UPSTREAM_BASE || 'HEAD';
       const tracked = git(APP_ROOT, 'diff', '--name-only', base).split('\n');
       const untracked = git(APP_ROOT, 'ls-files', '--others', '--exclude-standard').split('\n');
-      changed = [...new Set([...tracked, ...untracked])].filter((file) => file && !file.startsWith('gateway/') && !file.startsWith('mydocs/'));
+      changed = [...new Set([...tracked, ...untracked])].filter((file) => file && !file.startsWith('gateway/') && !file.startsWith('mydocs/') && !/^(node_modules|dist|dist-server|database)(\/|$)/.test(file));
     } catch {
       ctx.skip('不是 git 仓库');
     }
