@@ -46,6 +46,7 @@
     "createProject": "建立新專案",
     "refresh": "重新整理專案和工作階段 (Ctrl+R)",
     "renameProject": "重新命名專案 (F2)",
+    "projectOptions": "專案選項",
     "deleteProject": "從側邊欄移除專案 (Delete)",
     "addToFavorites": "加入收藏",
     "removeFromFavorites": "從收藏移除",

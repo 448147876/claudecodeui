@@ -46,6 +46,7 @@
     "createProject": "创建新项目",
     "refresh": "刷新项目和会话 (Ctrl+R)",
     "renameProject": "重命名项目 (F2)",
+    "projectOptions": "项目选项",
     "deleteProject": "从侧边栏移除项目 (Delete)",
     "addToFavorites": "添加到收藏",
     "removeFromFavorites": "从收藏移除",

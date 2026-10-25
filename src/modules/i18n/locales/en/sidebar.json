@@ -46,6 +46,7 @@
     "createProject": "Create new project",
     "refresh": "Refresh projects and sessions (Ctrl+R)",
     "renameProject": "Rename project (F2)",
+    "projectOptions": "Project options",
     "deleteProject": "Remove project from sidebar (Delete)",
     "addToFavorites": "Add to favorites",
     "removeFromFavorites": "Remove from favorites",

@@ -1,8 +1,8 @@
 import { memo, useEffect, useRef } from 'react';
-import { Check, ChevronDown, ChevronRight, Edit3, Star, Trash2, X } from 'lucide-react';
+import { Check, Edit3, MoreHorizontal, Star, Trash2, X } from 'lucide-react';
 import type { TFunction } from 'i18next';
 
-import { Button } from '@/shared/ui';
+import { ActionMenu, Button } from '@/shared/ui';
 import { cn } from '@/shared/utils';
 import type { LLMProvider, MCPServerStatus, Project, ProjectSession, SessionWithProvider, SidebarSessionSelection } from '@/shared/types';
 import { getTaskIndicatorStatus } from '@/modules/sidebar/utils/sidebarProjectFormatting';
@@ -146,6 +146,38 @@ function SidebarProjectItem({
     onSaveProjectName(project.projectId, renameDraft);
   };
 
+  // Rename and delete live behind the "…" menu instead of sitting on the row;
+  // the row itself already toggles, so it carries no expand chevron either.
+  const projectOptionsMenu = (triggerClassName: string) => (
+    <ActionMenu
+      label={t('tooltips.projectOptions', 'Project options')}
+      ariaLabel={`${t('tooltips.projectOptions', 'Project options')}: ${project.displayName}`}
+      icon={MoreHorizontal}
+      iconOnly
+      portal
+      variant="ghost"
+      size="icon"
+      triggerClassName={triggerClassName}
+      menuClassName="w-[200px] rounded-xl p-1.5 shadow-xl"
+      items={[
+        {
+          key: 'rename',
+          label: t('projects.renameProject'),
+          icon: Edit3,
+          onSelect: () => onStartEditingProject(project),
+        },
+        {
+          key: 'delete',
+          label: t('projects.deleteProject'),
+          icon: Trash2,
+          isDanger: true,
+          showDividerBefore: true,
+          onSelect: () => onDeleteProject(project),
+        },
+      ]}
+    />
+  );
+
   const selectAndToggleProject = () => {
     if (selectedProject?.projectId !== project.projectId) {
       onProjectSelect(project);
@@ -264,35 +296,10 @@ function SidebarProjectItem({
                     </button>
                   </>
                 ) : (
-                  <>
-                    <button
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-red-200 bg-red-500/10 active:scale-90 dark:border-red-800 dark:bg-red-900/30"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onDeleteProject(project);
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    </button>
-
-                    <button
-                      className="flex h-8 w-8 items-center justify-center rounded-lg border border-primary/20 bg-primary/10 active:scale-90 dark:border-primary/30 dark:bg-primary/20"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onStartEditingProject(project);
-                      }}
-                    >
-                      <Edit3 className="h-4 w-4 text-primary" />
-                    </button>
-
-                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted/30">
-                      {isExpanded ? (
-                        <ChevronDown className="h-3 w-3 text-muted-foreground" />
-                      ) : (
-                        <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </div>
-                  </>
+                  // The menu portals out, but React still bubbles its clicks to the card's toggle.
+                  <div onClick={(event) => event.stopPropagation()}>
+                    {projectOptionsMenu('h-8 w-8 rounded-lg text-muted-foreground')}
+                  </div>
                 )}
               </div>
             </div>
@@ -301,10 +308,12 @@ function SidebarProjectItem({
         )}
 
         {!isCompact && (
+        <div className="relative">
         <Button
           variant="ghost"
           className={cn(
             'sticky top-0 z-10 flex w-full justify-between p-2 h-auto font-normal hover:bg-accent/50',
+            !isEditing && 'pr-10',
             isSelected
               ? 'bg-accent text-accent-foreground'
               : isStarred
@@ -384,7 +393,7 @@ function SidebarProjectItem({
           </div>
 
           <div className="flex flex-shrink-0 items-center gap-1">
-            {isEditing ? (
+            {isEditing && (
               <>
                 <div
                   className="flex h-6 w-6 cursor-pointer items-center justify-center rounded text-green-600 transition-colors hover:bg-green-50 hover:text-green-700 dark:hover:bg-green-900/20"
@@ -405,37 +414,16 @@ function SidebarProjectItem({
                   <X className="h-3 w-3" />
                 </div>
               </>
-            ) : (
-              <>
-                <div
-                  className="touch:opacity-100 flex h-6 w-6 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-200 hover:bg-accent group-hover:opacity-100"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onStartEditingProject(project);
-                  }}
-                  title={t('tooltips.renameProject')}
-                >
-                  <Edit3 className="h-3 w-3" />
-                </div>
-                <div
-                  className="touch:opacity-100 flex h-6 w-6 cursor-pointer items-center justify-center rounded opacity-0 transition-all duration-200 hover:bg-red-50 group-hover:opacity-100 dark:hover:bg-red-900/20"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDeleteProject(project);
-                  }}
-                  title={t('tooltips.deleteProject')}
-                >
-                  <Trash2 className="h-3 w-3 text-red-600 dark:text-red-400" />
-                </div>
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 text-muted-foreground transition-colors group-hover:text-foreground" />
-                )}
-              </>
             )}
           </div>
         </Button>
+        {!isEditing && (
+          // A sibling of the row rather than a child, so no <button> nests in a <button>.
+          <div className="absolute right-2 top-1/2 z-20 -translate-y-1/2">
+            {projectOptionsMenu('h-7 w-7 text-muted-foreground hover:bg-muted hover:text-foreground')}
+          </div>
+        )}
+        </div>
         )}
       </div>
 
