@@ -74,6 +74,9 @@ export function createProcessManager({ config, log }) {
     for (const name of STRIPPED_ENV) delete env[name];
     Object.assign(env, {
       NODE_ENV: 'production',
+      // Plugin installs run `npm install` with this env; NODE_ENV=production would skip
+      // devDependencies, so plugins that compile (e.g. the starter's typescript) fail with `tsc: not found`.
+      npm_config_include: 'dev',
       HOME: config.childHome,
       HOST: '127.0.0.1',
       SERVER_PORT: String(port),
