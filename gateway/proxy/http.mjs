@@ -1,4 +1,5 @@
 import http from 'node:http';
+import zlib from 'node:zlib';
 
 import { stripGatewayCookie } from '../auth/cookie.mjs';
 
@@ -9,6 +10,23 @@ const BLOCKED = [
 ];
 
 const HOP_BY_HOP = ['connection', 'keep-alive', 'proxy-connection', 'transfer-encoding', 'upgrade', 'te', 'trailer'];
+
+// Upstream sends everything uncompressed; a large project's file tree is several MB of JSON.
+// Only whole-body types are listed: gzip buffers output, so text/event-stream must never be compressed.
+const COMPRESSIBLE = /^(application\/(json|javascript|xml|manifest\+json)|text\/(html|css|javascript|plain|markdown|xml)|image\/svg\+xml)\b/i;
+const MIN_COMPRESS_BYTES = 1024;
+
+/** True when the response is worth gzipping and the client accepts it. */
+export function shouldCompress(req, upstreamRes) {
+  if (req.method === 'HEAD') return false;
+  const status = upstreamRes.statusCode ?? 200;
+  if (status === 204 || status === 304 || status < 200) return false;
+  if (upstreamRes.headers['content-encoding']) return false;
+  if (!/\bgzip\b/i.test(String(req.headers['accept-encoding'] ?? ''))) return false;
+  if (!COMPRESSIBLE.test(String(upstreamRes.headers['content-type'] ?? ''))) return false;
+  const length = Number(upstreamRes.headers['content-length']);
+  return !(Number.isFinite(length) && length < MIN_COMPRESS_BYTES);
+}
 
 export function isBlocked(req) {
   const pathname = req.url.split('?')[0];
@@ -84,6 +102,20 @@ export function proxyHttp(req, res, { port, clientIp, proto, getBootstrap, onErr
     }
     const responseHeaders = { ...upstreamRes.headers };
     for (const name of HOP_BY_HOP.filter((h) => h !== 'transfer-encoding')) delete responseHeaders[name];
+    if (shouldCompress(req, upstreamRes)) {
+      delete responseHeaders['content-length'];
+      delete responseHeaders['transfer-encoding'];
+      responseHeaders['content-encoding'] = 'gzip';
+      responseHeaders.vary = responseHeaders.vary ? `${responseHeaders.vary}, Accept-Encoding` : 'Accept-Encoding';
+      // The body bytes change, so a strong validator would be wrong.
+      if (typeof responseHeaders.etag === 'string' && !responseHeaders.etag.startsWith('W/')) responseHeaders.etag = `W/${responseHeaders.etag}`;
+      res.writeHead(upstreamRes.statusCode ?? 502, responseHeaders);
+      const gzip = zlib.createGzip({ level: 6 });
+      gzip.on('error', onError);
+      upstreamRes.pipe(gzip).pipe(res);
+      res.on('close', () => { upstreamRes.destroy(); gzip.destroy(); });
+      return;
+    }
     res.writeHead(upstreamRes.statusCode ?? 502, responseHeaders);
     upstreamRes.pipe(res);
     res.on('close', () => upstreamRes.destroy());
