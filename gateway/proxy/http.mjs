@@ -67,7 +67,7 @@ export function injectBootstrap(html, bootstrap) {
  * Streams one request to the child on `port`. HTML responses are buffered and
  * get the bootstrap injected; everything else (including SSE) is piped.
  */
-export function proxyHttp(req, res, { port, clientIp, proto, getBootstrap, onError, body = null }) {
+export function proxyHttp(req, res, { port, clientIp, proto, getBootstrap, onError, body = null, transformJson = null }) {
   const headers = forwardHeaders(req, { clientIp, proto });
   // A body the gateway already read (to inspect it) is sent as-is.
   if (body) {
@@ -75,7 +75,8 @@ export function proxyHttp(req, res, { port, clientIp, proto, getBootstrap, onErr
     headers['content-length'] = String(body.length);
   }
   const html = wantsHtml(req);
-  if (html) headers['accept-encoding'] = 'identity';
+  // Bodies the gateway rewrites must arrive uncompressed.
+  if (html || transformJson) headers['accept-encoding'] = 'identity';
 
   const upstreamReq = http.request({ host: '127.0.0.1', port, method: req.method, path: req.url, headers }, (upstreamRes) => {
     const contentType = String(upstreamRes.headers['content-type'] ?? '');
@@ -93,6 +94,32 @@ export function proxyHttp(req, res, { port, clientIp, proto, getBootstrap, onErr
           responseHeaders['cache-control'] = 'no-store';
           res.writeHead(upstreamRes.statusCode ?? 200, responseHeaders);
           res.end(body);
+        } catch (error) {
+          onError(error);
+        }
+      });
+      upstreamRes.on('error', onError);
+      return;
+    }
+    if (transformJson && (upstreamRes.statusCode ?? 0) < 300 && contentType.includes('application/json')) {
+      // A member-filtered response (member-policy RESPONSE_FILTERS): never forward the original body.
+      const chunks = [];
+      upstreamRes.on('data', (chunk) => chunks.push(chunk));
+      upstreamRes.on('end', () => {
+        try {
+          if (upstreamRes.headers['content-encoding']) throw new Error('encoded body cannot be filtered');
+          let out = Buffer.from(JSON.stringify(transformJson(JSON.parse(Buffer.concat(chunks).toString('utf8')))));
+          const responseHeaders = { ...upstreamRes.headers };
+          for (const name of [...HOP_BY_HOP, 'content-length', 'etag', 'last-modified']) delete responseHeaders[name];
+          responseHeaders['cache-control'] = 'no-store';
+          if (/\bgzip\b/i.test(String(req.headers['accept-encoding'] ?? '')) && out.length >= MIN_COMPRESS_BYTES) {
+            out = zlib.gzipSync(out);
+            responseHeaders['content-encoding'] = 'gzip';
+            responseHeaders.vary = 'Accept-Encoding';
+          }
+          responseHeaders['content-length'] = String(out.length);
+          res.writeHead(upstreamRes.statusCode ?? 200, responseHeaders);
+          res.end(out);
         } catch (error) {
           onError(error);
         }

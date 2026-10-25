@@ -30,6 +30,22 @@ const MCP_BODY_SCOPE = [
 const MAX_BODY_BYTES = 1024 * 1024;
 
 /**
+ * JSON responses rewritten for members: [method, path pattern, transform].
+ * The claude-usage plugin aggregates every account's ~/.claude/projects; its
+ * per-project breakdown names other accounts' projects, so only admin sees it.
+ */
+const RESPONSE_FILTERS = [
+  ['GET', /^\/api\/plugins\/claude-usage\/rpc\/history$/, (data) => ({ ...data, byProject: [] })],
+];
+
+/** Transform to apply to a member's JSON response, or null when it passes through. */
+export function memberResponseFilter(req) {
+  const pathname = normalizePath(req.url);
+  const match = RESPONSE_FILTERS.find(([method, pattern]) => req.method === method && pattern.test(pathname));
+  return match ? match[2] : null;
+}
+
+/**
  * Normalizes a request path the way upstream's Express router matches it:
  * case-insensitive, duplicate and trailing slashes ignored, percent-decoded.
  */

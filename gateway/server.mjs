@@ -12,7 +12,7 @@ import { dataPaths, ensurePrivateDir, loadConfig, writePrivateFile } from './con
 import { createProcessManager } from './proc/manager.mjs';
 import { acquireGatewayLock, cleanupOrphans } from './proc/run-files.mjs';
 import { isBlocked, proxyHttp, wantsHtml } from './proxy/http.mjs';
-import { checkMemberRequest, needsBody, readBody } from './proxy/member-policy.mjs';
+import { checkMemberRequest, memberResponseFilter, needsBody, readBody } from './proxy/member-policy.mjs';
 import { proxyUpgrade, rejectUpgrade } from './proxy/upgrade.mjs';
 import { createAccountStore, openDatabase } from './store/accounts.mjs';
 import { createBackup, restoreBackup } from './store/backup.mjs';
@@ -159,6 +159,7 @@ export async function startGateway(config = loadConfig()) {
       clientIp: clientIp(req, config),
       proto: requestProto(req, config),
       body,
+      transformJson: account.role === 'member' ? memberResponseFilter(req) : null,
       getBootstrap: async () => ({ account: account.username, role: account.role, token: await manager.getToken(account) }),
       onError: (error) => {
         log(`${account.username}: proxy error ${req.method} ${req.url}: ${error.message}`);
