@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { AlertTriangle } from 'lucide-react';
 
 import type { SidebarProjectListProps } from '@/shared/types';
 import { getPageTitle } from '@/shared/utils';
@@ -37,6 +38,7 @@ export default function SidebarProjectList({
   onCancelEditingProject,
   onSaveProjectName,
   onDeleteProject,
+  onCleanupMissingProjects,
   onSessionSelect,
   onDeleteSession,
   onForkSession,
@@ -67,9 +69,23 @@ export default function SidebarProjectList({
   }, [pageTitle]);
 
   const showProjects = !isLoading && projects.length > 0 && filteredProjects.length > 0;
+  const missingCount = projects.filter((project) => project.isMissing).length;
 
   return (
       <div className="pb-safe-area-inset-bottom md:space-y-1">
+        {!isLoading && missingCount > 0 && (
+          <button
+            type="button"
+            onClick={onCleanupMissingProjects}
+            className="mx-2 my-1 flex w-[calc(100%-1rem)] items-center gap-2 rounded-md border border-amber-300/60 bg-amber-50 px-2 py-1.5 text-left text-xs text-amber-800 hover:bg-amber-100 dark:border-amber-700/50 dark:bg-amber-900/20 dark:text-amber-300 dark:hover:bg-amber-900/30"
+          >
+            <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+            <span className="min-w-0 flex-1 truncate">
+              {t('missingProjects.banner', { count: missingCount, defaultValue: '{{count}} project directory(ies) missing' })}
+            </span>
+            <span className="flex-shrink-0 font-medium underline">{t('missingProjects.cleanup', 'Clean up')}</span>
+          </button>
+        )}
         {!showProjects
           ? state
           : filteredProjects.map((project) => {

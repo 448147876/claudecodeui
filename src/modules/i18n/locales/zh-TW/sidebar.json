@@ -167,5 +167,23 @@
     "archiveSessions_other": "封存 {{count}} 個工作階段",
     "archiveSessionsNotice_one": "封存會將所選工作階段移出使用中清單，但保留其歷史記錄。",
     "archiveSessionsNotice_other": "封存會將所選工作階段移出使用中清單，但保留其歷史記錄。"
+  },
+  "missingProjects": {
+    "banner_one": "{{count}} 個專案目錄不存在",
+    "banner_other": "{{count}} 個專案目錄不存在",
+    "cleanup": "清理",
+    "badge": "目錄不存在",
+    "badgeTooltip": "專案目錄已不存在：{{path}}",
+    "title": "清理失效專案",
+    "description": "以下專案的目錄已不存在。刪除會永久移除這些專案及其全部對話紀錄，無法復原。",
+    "selectedSummary": "已選 {{count}} 個專案，共 {{sessions}} 個對話",
+    "selectAll": "全選",
+    "clearAll": "全不選",
+    "sessions_one": "{{count}} 個對話",
+    "sessions_other": "{{count}} 個對話",
+    "confirm_one": "永久刪除 {{count}} 個專案",
+    "confirm_other": "永久刪除 {{count}} 個專案",
+    "partialSkipped_one": "有 {{count}} 個專案被略過：目錄已恢復或刪除失敗。",
+    "partialSkipped_other": "有 {{count}} 個專案被略過：目錄已恢復或刪除失敗。"
   }
 }

@@ -130,6 +130,8 @@ export type Project = {
   fullPath: string;
   path?: string;
   isStarred?: boolean;
+  /** Set by the server when the project directory no longer exists on disk. */
+  isMissing?: boolean;
   sessions?: ProjectSession[];
   sessionMeta?: ProjectSessionMeta;
   taskmaster?: ProjectTaskmasterInfo;
@@ -1542,6 +1544,8 @@ export type SidebarProjectListProps = SessionRowActions & {
   onCancelEditingProject: () => void;
   onSaveProjectName: (projectId: string, nextName: string) => void;
   onDeleteProject: (project: Project) => void;
+  /** Opens the confirmation that permanently deletes projects whose directory no longer exists. */
+  onCleanupMissingProjects: () => void;
   onSessionSelect: (session: SessionWithProvider, projectName: string) => void;
   onNewSession: (project: Project) => void;
   /** The project whose session list is in bulk-selection mode and the rows ticked in it, or null while no list is selecting. */
@@ -1626,7 +1630,8 @@ export type ActiveSidebarRename =
 export type PendingSidebarDeletion =
   | { kind: 'project'; project: Project; sessionCount: number }
   | { kind: 'session'; sessionId: string; sessionTitle: string; isArchived: boolean }
-  | { kind: 'sessions'; sessionIds: string[] };
+  | { kind: 'sessions'; sessionIds: string[] }
+  | { kind: 'missingProjects'; projects: Project[] };
 
 /**
  * The sessions ticked for a bulk action, scoped to the one project whose list

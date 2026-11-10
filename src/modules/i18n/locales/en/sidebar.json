@@ -177,5 +177,23 @@
     "archiveSessions_other": "Archive {{count}} sessions",
     "archiveSessionsNotice_one": "Archive keeps the session out of the active list while preserving its history.",
     "archiveSessionsNotice_other": "Archive keeps the sessions out of the active list while preserving their history."
+  },
+  "missingProjects": {
+    "banner_one": "{{count}} project directory is missing",
+    "banner_other": "{{count}} project directories are missing",
+    "cleanup": "Clean up",
+    "badge": "Directory missing",
+    "badgeTooltip": "The project directory no longer exists: {{path}}",
+    "title": "Clean up missing projects",
+    "description": "These project directories no longer exist. Deleting removes the projects and all their conversation history permanently. This cannot be undone.",
+    "selectedSummary": "{{count}} project(s), {{sessions}} conversation(s) selected",
+    "selectAll": "Select all",
+    "clearAll": "Clear all",
+    "sessions_one": "{{count}} conversation",
+    "sessions_other": "{{count}} conversations",
+    "confirm_one": "Permanently delete {{count}} project",
+    "confirm_other": "Permanently delete {{count}} projects",
+    "partialSkipped_one": "{{count}} project was skipped because its directory exists again or could not be deleted.",
+    "partialSkipped_other": "{{count}} projects were skipped because their directory exists again or could not be deleted."
   }
 }

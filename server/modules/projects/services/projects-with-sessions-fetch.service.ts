@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 
 import { projectsDb, sessionsDb } from '@/modules/database/index.js';
+import { isProjectDirectoryMissing } from '@/modules/projects/services/project-delete.service.js';
 import { sessionSynchronizerService } from '@/modules/providers/index.js';
 import { WS_OPEN_STATE, connectedClients } from '@/modules/websocket/index.js';
 import type { RealtimeClientConnection } from '@/shared/types.js';
@@ -29,6 +30,8 @@ export type ProjectListItem = {
   displayName: string;
   fullPath: string;
   isStarred: boolean;
+  /** The project directory no longer exists on disk (moved or deleted); only set on the active list. */
+  isMissing?: boolean;
   sessions: SessionSummary[];
   sessionMeta: {
     hasMore: boolean;
@@ -223,6 +226,7 @@ export async function getProjectsWithSessions(
       displayName,
       fullPath: projectPath,
       isStarred: Boolean(row.isStarred),
+      isMissing: await isProjectDirectoryMissing(projectPath),
       sessions: sessionsPage.sessions,
       sessionMeta: {
         hasMore: sessionsPage.hasMore,

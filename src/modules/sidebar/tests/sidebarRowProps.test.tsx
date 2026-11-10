@@ -92,6 +92,7 @@ const listProps = (
   onCancelEditingProject: noop,
   onSaveProjectName: noop,
   onDeleteProject: noop,
+  onCleanupMissingProjects: noop,
   onSessionSelect: noop,
   onDeleteSession: noop,
   onNewSession: noop,

@@ -259,6 +259,14 @@ function SidebarProjectItem({
                     <>
                       <div className="flex min-w-0 flex-1 items-center justify-between">
                         <h3 className="truncate text-sm font-normal text-foreground">{project.displayName}</h3>
+                        {project.isMissing && (
+                          <span
+                            className="ml-1 flex-shrink-0 rounded bg-amber-100 px-1 text-[10px] text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                            title={t('missingProjects.badgeTooltip', { path: project.fullPath, defaultValue: 'The project directory no longer exists: {{path}}' })}
+                          >
+                            {t('missingProjects.badge', 'Directory missing')}
+                          </span>
+                        )}
                         {tasksEnabled && (
                           <TaskIndicator
                             status={taskStatus}
@@ -375,8 +383,18 @@ function SidebarProjectItem({
                 </div>
               ) : (
                 <div>
-                  <div className="truncate text-sm font-normal text-foreground" title={project.displayName}>
-                    {project.displayName}
+                  <div className="flex min-w-0 items-center">
+                    <div className="truncate text-sm font-normal text-foreground" title={project.displayName}>
+                      {project.displayName}
+                    </div>
+                    {project.isMissing && (
+                      <span
+                        className="ml-1 flex-shrink-0 rounded bg-amber-100 px-1 text-[10px] text-amber-800 dark:bg-amber-900/30 dark:text-amber-300"
+                        title={t('missingProjects.badgeTooltip', { path: project.fullPath, defaultValue: 'The project directory no longer exists: {{path}}' })}
+                      >
+                        {t('missingProjects.badge', 'Directory missing')}
+                      </span>
+                    )}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     {sessionCountDisplay}

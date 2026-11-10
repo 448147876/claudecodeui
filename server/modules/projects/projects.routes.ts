@@ -7,7 +7,7 @@ import { startCloneProject } from '@/modules/projects/services/project-clone.ser
 import { getProjectTaskMaster } from '@/modules/projects/services/projects-has-taskmaster.service.js';
 import { AppError, asyncHandler, createApiSuccessResponse } from '@/shared/utils.js';
 import { getArchivedProjectsWithSessions, getProjectSessionsPage, getProjectsWithSessions } from '@/modules/projects/services/projects-with-sessions-fetch.service.js';
-import { deleteOrArchiveProject, restoreArchivedProject } from '@/modules/projects/services/project-delete.service.js';
+import { cleanupMissingProjects, deleteOrArchiveProject, restoreArchivedProject } from '@/modules/projects/services/project-delete.service.js';
 import { applyLegacyStarredProjectIds, toggleProjectStar } from '@/modules/projects/services/project-star.service.js';
 
 /**
@@ -143,6 +143,22 @@ router.post(
       : [];
     const { updated } = applyLegacyStarredProjectIds(projectIds);
     res.json({ success: true, updated });
+  }),
+);
+
+/**
+ * Permanently deletes the listed projects whose directory no longer exists
+ * (re-verified server-side; projects whose directory is back are skipped).
+ */
+router.post(
+  '/missing/cleanup',
+  asyncHandler(async (req, res) => {
+    const rawIds = (req.body as { projectIds?: unknown })?.projectIds;
+    if (!Array.isArray(rawIds) || rawIds.length === 0) {
+      throw new AppError('projectIds must be a non-empty array', { code: 'INVALID_PROJECT_IDS', statusCode: 400 });
+    }
+    const result = await cleanupMissingProjects(rawIds.map((id) => String(id)));
+    res.json(createApiSuccessResponse(result));
   }),
 );
 

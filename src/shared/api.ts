@@ -239,6 +239,9 @@ export const api = {
   // `hardDelete` => server `?force=true` (remove DB row + Claude *.jsonl + sessions rows for path).
   deleteProject: (projectId: string, hardDelete = false) =>
     del(`/api/projects/${projectId}${query({ force: hardDelete })}`),
+  // Permanently deletes the listed projects whose directory is gone (re-checked server-side).
+  cleanupMissingProjects: (projectIds: string[]) =>
+    post('/api/projects/missing/cleanup', { projectIds }),
   createProject: (projectData: unknown) => post('/api/projects/create-project', projectData),
   migrateLegacyProjectStars: (projectIds: string[]) =>
     post('/api/projects/migrate-legacy-stars', { projectIds }),

@@ -168,5 +168,23 @@
     "archiveSessions_other": "归档 {{count}} 个会话",
     "archiveSessionsNotice_one": "归档会将所选会话移出活动列表，但保留其历史记录。",
     "archiveSessionsNotice_other": "归档会将所选会话移出活动列表，但保留其历史记录。"
+  },
+  "missingProjects": {
+    "banner_one": "{{count}} 个项目目录不存在",
+    "banner_other": "{{count}} 个项目目录不存在",
+    "cleanup": "清理",
+    "badge": "目录不存在",
+    "badgeTooltip": "项目目录已不存在：{{path}}",
+    "title": "清理失效项目",
+    "description": "以下项目的目录已不存在。删除会永久移除这些项目及其全部会话历史，无法恢复。",
+    "selectedSummary": "已选 {{count}} 个项目，共 {{sessions}} 个会话",
+    "selectAll": "全选",
+    "clearAll": "全不选",
+    "sessions_one": "{{count}} 个会话",
+    "sessions_other": "{{count}} 个会话",
+    "confirm_one": "永久删除 {{count}} 个项目",
+    "confirm_other": "永久删除 {{count}} 个项目",
+    "partialSkipped_one": "有 {{count}} 个项目被跳过：目录已恢复或删除失败。",
+    "partialSkipped_other": "有 {{count}} 个项目被跳过：目录已恢复或删除失败。"
   }
 }

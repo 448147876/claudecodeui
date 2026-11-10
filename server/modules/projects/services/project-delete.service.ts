@@ -1,4 +1,5 @@
 import { promises as fs } from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 import { projectsDb, sessionsDb } from '@/modules/database/index.js';
@@ -24,6 +25,49 @@ function uniqueJsonlPathsFromSessions(
   }
 
   return result;
+}
+
+/**
+ * True only when the project directory is definitely gone. Any other failure
+ * (permissions, I/O) counts as present so a project is never flagged — or
+ * cleaned up — just because its directory could not be read.
+ */
+export async function isProjectDirectoryMissing(projectPath: string): Promise<boolean> {
+  try {
+    return !(await fs.stat(projectPath)).isDirectory();
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    return code === 'ENOENT' || code === 'ENOTDIR';
+  }
+}
+
+/**
+ * A Claude transcript `<projects>/<encoded-cwd>/<session>.jsonl` keeps its
+ * subagent and tool-result files in a sibling `<session>/` directory. Removes
+ * that directory, then the encoded-cwd directory once nothing is left in it.
+ * Does nothing for transcripts outside `~/.claude/projects` (other providers).
+ */
+async function removeClaudeTranscriptLeftovers(filePath: string): Promise<void> {
+  const claudeProjectsRoot = path.join(os.homedir(), '.claude', 'projects');
+  const projectDir = path.dirname(filePath);
+  if (path.dirname(projectDir) !== claudeProjectsRoot || path.extname(filePath) !== '.jsonl') {
+    return;
+  }
+
+  const sessionDirName = path.basename(filePath, '.jsonl');
+  if (sessionDirName) {
+    await fs.rm(path.join(projectDir, sessionDirName), { recursive: true, force: true }).catch((error: Error) => {
+      console.warn(`[project-delete] Failed to remove ${path.join(projectDir, sessionDirName)}:`, error.message);
+    });
+  }
+
+  try {
+    if ((await fs.readdir(projectDir)).length === 0) {
+      await fs.rmdir(projectDir);
+    }
+  } catch {
+    // Already gone, or another session still lives there.
+  }
 }
 
 async function unlinkJsonlIfExists(filePath: string): Promise<void> {
@@ -55,6 +99,7 @@ export async function deleteSessionJsonlFilesForProjectPath(projectPath: string)
 
   for (const filePath of paths) {
     await unlinkJsonlIfExists(filePath);
+    await removeClaudeTranscriptLeftovers(filePath);
   }
 
   for (const session of sessions) {
@@ -84,6 +129,36 @@ export async function deleteOrArchiveProject(projectId: string, force: boolean):
   await deleteSessionJsonlFilesForProjectPath(row.project_path);
   sessionsDb.deleteSessionsByProjectPath(row.project_path);
   projectsDb.deleteProjectById(projectId);
+}
+
+/**
+ * Permanently deletes the given projects whose directory no longer exists.
+ * Each id is re-checked here, so a project whose directory came back since the
+ * list was loaded (e.g. the repo was cloned again) is skipped, never deleted.
+ */
+export async function cleanupMissingProjects(
+  projectIds: string[],
+): Promise<{ deleted: string[]; skipped: string[] }> {
+  const deleted: string[] = [];
+  const skipped: string[] = [];
+
+  for (const projectId of new Set(projectIds)) {
+    const row = projectsDb.getProjectById(projectId);
+    if (!row || !(await isProjectDirectoryMissing(row.project_path))) {
+      skipped.push(projectId);
+      continue;
+    }
+
+    try {
+      await deleteOrArchiveProject(projectId, true);
+      deleted.push(projectId);
+    } catch (error) {
+      console.warn(`[project-delete] Failed to clean up project ${projectId}:`, (error as Error).message);
+      skipped.push(projectId);
+    }
+  }
+
+  return { deleted, skipped };
 }
 
 /**

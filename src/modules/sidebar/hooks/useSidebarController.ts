@@ -1128,6 +1128,58 @@ export function useSidebarController({
     }
   }, [pendingDeletion, onProjectDelete, t]);
 
+  const requestMissingProjectsCleanup = useCallback(() => {
+    const missingProjects = projects.filter((project) => project.isMissing);
+    if (missingProjects.length > 0) {
+      setPendingDeletion({ kind: 'missingProjects', projects: missingProjects });
+    }
+  }, [projects]);
+
+  const confirmCleanupMissingProjects = useCallback(async (projectIds: string[]) => {
+    if (pendingDeletion?.kind !== 'missingProjects' || projectIds.length === 0) {
+      return;
+    }
+
+    setPendingDeletion(null);
+    setDeletingProjects((prev) => new Set([...prev, ...projectIds]));
+
+    try {
+      const response = await api.cleanupMissingProjects(projectIds);
+      const body = (await response.json()) as {
+        data?: { deleted?: string[]; skipped?: string[] };
+        error?: string | { message?: string };
+      };
+
+      if (!response.ok) {
+        const err = body.error;
+        alert(typeof err === 'string' ? err : err?.message || t('messages.deleteProjectFailed'));
+        return;
+      }
+
+      for (const projectId of body.data?.deleted ?? []) {
+        onProjectDelete?.(projectId);
+      }
+      const skipped = body.data?.skipped?.length ?? 0;
+      if (skipped > 0) {
+        alert(t('missingProjects.partialSkipped', {
+          count: skipped,
+          defaultValue: '{{count}} project(s) were skipped because their directory exists again or could not be deleted.',
+        }));
+      }
+    } catch (error) {
+      console.error('Error cleaning up missing projects:', error);
+      alert(t('messages.deleteProjectError'));
+    } finally {
+      setDeletingProjects((prev) => {
+        const next = new Set(prev);
+        for (const projectId of projectIds) {
+          next.delete(projectId);
+        }
+        return next;
+      });
+    }
+  }, [pendingDeletion, onProjectDelete, t]);
+
   const handleProjectSelect = useCallback(
     (project: Project) => {
       onProjectSelect(project);
@@ -1352,6 +1404,8 @@ export function useSidebarController({
     confirmDeleteSessions,
     requestProjectDelete,
     confirmDeleteProject,
+    requestMissingProjectsCleanup,
+    confirmCleanupMissingProjects,
     handleProjectSelect,
     openArchivedSession,
     restoreArchivedProject,

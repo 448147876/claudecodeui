@@ -133,6 +133,8 @@ function Sidebar({
     confirmDeleteSessions,
     requestProjectDelete,
     confirmDeleteProject,
+    requestMissingProjectsCleanup,
+    confirmCleanupMissingProjects,
     handleProjectSelect,
     openArchivedSession,
     restoreArchivedProject,
@@ -221,6 +223,7 @@ function Sidebar({
     onCancelEditingProject: cancelRename,
     onSaveProjectName: handleSaveProjectName,
     onDeleteProject: requestProjectDelete,
+    onCleanupMissingProjects: requestMissingProjectsCleanup,
     onSessionSelect: handleSessionClick,
     onDeleteSession: showDeleteSessionConfirmation,
     onForkSession: forkSession,
@@ -250,6 +253,7 @@ function Sidebar({
         pendingDeletion={pendingDeletion}
         onCancelDeletion={() => setPendingDeletion(null)}
         onConfirmDeleteProject={confirmDeleteProject}
+        onConfirmCleanupMissingProjects={confirmCleanupMissingProjects}
         onConfirmDeleteSession={confirmDeleteSession}
         onConfirmDeleteSessions={confirmDeleteSessions}
         showVersionModal={showVersionModal}

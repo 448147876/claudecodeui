@@ -1044,6 +1044,16 @@ async function queryClaudeSDK(command, options = {}, ws, context) {
   let queryInstance = null;
 
   try {
+    // A missing cwd makes child_process.spawn fail with ENOENT, which the SDK
+    // misreports as "Claude Code native binary not found at claude". Check it
+    // up front so the user sees the real cause (e.g. a deleted worktree).
+    if (options.cwd) {
+      const cwdStat = await fs.stat(options.cwd).catch(() => null);
+      if (!cwdStat?.isDirectory()) {
+        throw new Error(`Project directory not found: ${options.cwd}. It may have been moved or deleted; open another project or remove this one from the sidebar.`);
+      }
+    }
+
     const resolvedModel = await context.resolveResumeModel(sessionId, options.model);
     let effortModels = CLAUDE_PREDEFINED_MODELS;
     try {
