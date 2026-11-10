@@ -23,6 +23,15 @@ function commandLine(pid) {
   }
 }
 
+/**
+ * True only when pid is a live gateway process. After a reboot the pid in
+ * gateway.lock can belong to an unrelated process or even a thread of one
+ * (kill(pid, 0) succeeds for thread ids), so the command line is checked too.
+ */
+export function isGatewayProcess(pid) {
+  return Boolean(pid) && isAlive(pid) && commandLine(pid).includes('gateway/bin.mjs');
+}
+
 export function writeRunFile(config, username, info) {
   ensurePrivateDir(dataPaths(config).run);
   writePrivateFile(dataPaths(config).runFile(username), JSON.stringify(info));
@@ -86,7 +95,7 @@ export function acquireGatewayLock(config) {
   ensurePrivateDir(path.dirname(lock));
   if (fs.existsSync(lock)) {
     const pid = Number.parseInt(fs.readFileSync(lock, 'utf8'), 10);
-    if (pid && pid !== process.pid && isAlive(pid)) {
+    if (pid && pid !== process.pid && isGatewayProcess(pid)) {
       throw new Error(`another gateway (pid ${pid}) is already using ${config.dataRoot}`);
     }
   }

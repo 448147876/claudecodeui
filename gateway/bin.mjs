@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 import { dataPaths, loadConfig } from './config.mjs';
-import { isAlive } from './proc/run-files.mjs';
+import { isGatewayProcess } from './proc/run-files.mjs';
 import { listBackups, restoreBackup } from './store/backup.mjs';
 
 const USAGE = `用法：cloudcli-multi <命令>
@@ -22,7 +22,7 @@ const config = loadConfig();
 function gatewayRunning() {
   const lock = dataPaths(config).lock;
   if (!fs.existsSync(lock)) return false;
-  return isAlive(Number.parseInt(fs.readFileSync(lock, 'utf8'), 10));
+  return isGatewayProcess(Number.parseInt(fs.readFileSync(lock, 'utf8'), 10));
 }
 
 switch (command) {
