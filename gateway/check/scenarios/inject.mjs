@@ -58,4 +58,23 @@ export const injectScenarios = [
     const memberLinks = [...member.window.document.querySelectorAll('#gw-menu a')].map((link) => link.getAttribute('href'));
     assert.deepEqual(memberLinks, ['/__gw/logout']);
   }],
+
+  ['POL-06b', '仅管理员可见的插件：普通账号隐藏推荐卡片、离开已打开的插件 tab，管理员不变（jsdom）', async (ctx) => {
+    const hiddenPlugins = [{ name: 'agent-monitor', repoUrl: 'https://github.com/notetook/cloudcli-plugin-agent-monitor' }];
+    const card = (repoUrl) => `<div class="relative flex border border-dashed"><div class="p-4"><a href="${repoUrl}">repo</a><button>Install</button></div></div>`;
+    const member = await runInject(ctx, { account: 'projA', role: 'member', token: 't', hiddenPlugins }, { 'gw-account': 'projA', activeTab: 'plugin:agent-monitor' });
+    assert.equal(member.window.localStorage.getItem('activeTab'), 'chat');
+    const rule = [...member.window.document.querySelectorAll('style')].map((style) => style.textContent).find((text) => text.includes('border-dashed'));
+    assert.ok(rule, 'member page gets the hiding rule');
+    const selector = rule.slice(0, rule.indexOf('{'));
+    member.window.document.body.innerHTML = card(hiddenPlugins[0].repoUrl) + card('https://github.com/HandyS11/cloudcli-plugin-claude-usage');
+    const cards = [...member.window.document.querySelectorAll('div.border-dashed')];
+    assert.deepEqual(cards.map((element) => element.matches(selector)), [true, false], 'only the admin-only card is hidden');
+
+    const kept = await runInject(ctx, { account: 'projA', role: 'member', token: 't', hiddenPlugins }, { 'gw-account': 'projA', activeTab: 'plugin:claude-usage' });
+    assert.equal(kept.window.localStorage.getItem('activeTab'), 'plugin:claude-usage', 'other plugin tabs stay open');
+    const admin = await runInject(ctx, { account: 'admin', role: 'admin', token: 't' }, { 'gw-account': 'admin', activeTab: 'plugin:agent-monitor' });
+    assert.equal(admin.window.localStorage.getItem('activeTab'), 'plugin:agent-monitor');
+    assert.ok(![...admin.window.document.querySelectorAll('style')].some((style) => style.textContent.includes('border-dashed')), 'admin page has no hiding rule');
+  }],
 ];

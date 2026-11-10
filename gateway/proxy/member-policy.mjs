@@ -30,13 +30,39 @@ const MCP_BODY_SCOPE = [
 const MAX_BODY_BYTES = 1024 * 1024;
 
 /**
+ * Plugins only admin sees (mydocs/08 3.4): [manifest name, repo URL on
+ * upstream's recommendation card]. Their servers still start in every child;
+ * members just get no list entry, card, API or WebSocket for them.
+ */
+export const ADMIN_ONLY_PLUGINS = [
+  ['agent-monitor', 'https://github.com/notetook/cloudcli-plugin-agent-monitor'],
+  ['session-manager', 'https://github.com/strykereye2/cloudcli-plugin-session-manager'],
+  ['task-queue', 'https://github.com/TadMSTR/cloudcli-plugin-task-queue'],
+  ['token-cost-calculator', 'https://github.com/NightmareAway/cloudcli-plugin-token-cost-calculator'],
+].map(([name, repoUrl]) => ({ name, repoUrl }));
+const ADMIN_ONLY_NAMES = new Set(ADMIN_ONLY_PLUGINS.map((plugin) => plugin.name));
+const ADMIN_ONLY_PLUGIN_PATH = /^\/(?:api\/plugins|plugin-ws)\/([^/]+)(?:\/|$)/;
+const ADMIN_ONLY_MESSAGE = '该插件仅管理员可用。';
+
+/**
  * JSON responses rewritten for members: [method, path pattern, transform].
- * The claude-usage plugin aggregates every account's ~/.claude/projects; its
- * per-project breakdown names other accounts' projects, so only admin sees it.
+ * The plugin list leaves out the admin-only plugins. The claude-usage plugin
+ * aggregates every account's ~/.claude/projects; its per-project breakdown
+ * names other accounts' projects, so only admin sees it.
  */
 const RESPONSE_FILTERS = [
+  ['GET', /^\/api\/plugins$/, (data) => ({
+    ...data,
+    plugins: (data.plugins ?? []).filter((plugin) => !ADMIN_ONLY_NAMES.has(String(plugin.name).toLowerCase())),
+  })],
   ['GET', /^\/api\/plugins\/claude-usage\/rpc\/history$/, (data) => ({ ...data, byProject: [] })],
 ];
+
+/** Whether a member's request (HTTP or WebSocket upgrade) targets an admin-only plugin. */
+export function isAdminOnlyPluginPath(url) {
+  const match = ADMIN_ONLY_PLUGIN_PATH.exec(normalizePath(url));
+  return Boolean(match && ADMIN_ONLY_NAMES.has(match[1]));
+}
 
 /** Transform to apply to a member's JSON response, or null when it passes through. */
 export function memberResponseFilter(req) {
@@ -60,13 +86,10 @@ export function normalizePath(url) {
   return pathname.length > 1 ? pathname.replace(/\/+$/, '') : pathname;
 }
 
-export function forbiddenResponse(what) {
+export function forbiddenResponse(what, message = `普通账号不能修改全局配置：${what}。请使用管理员账号操作。`) {
   return {
     status: 403,
-    body: {
-      success: false,
-      error: { code: 'GATEWAY_MEMBER_FORBIDDEN', message: `普通账号不能修改全局配置：${what}。请使用管理员账号操作。` },
-    },
+    body: { success: false, error: { code: 'GATEWAY_MEMBER_FORBIDDEN', message } },
   };
 }
 
@@ -103,6 +126,7 @@ export function checkMemberRequest(req, body = null) {
   const pathname = normalizePath(req.url);
   const blocked = BLOCKED.find((rule) => rule.method === req.method && rule.pattern.test(pathname));
   if (blocked) return forbiddenResponse(blocked.what);
+  if (isAdminOnlyPluginPath(req.url)) return forbiddenResponse(null, ADMIN_ONLY_MESSAGE);
 
   if (MCP_QUERY_SCOPE.some(([method, pattern]) => req.method === method && pattern.test(pathname))) {
     // Repeated parameters arrive upstream as an array; refuse if any of them says user.

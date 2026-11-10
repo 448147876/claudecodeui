@@ -77,6 +77,11 @@ export function proxyHttp(req, res, { port, clientIp, proto, getBootstrap, onErr
   const html = wantsHtml(req);
   // Bodies the gateway rewrites must arrive uncompressed.
   if (html || transformJson) headers['accept-encoding'] = 'identity';
+  // A 304 would reuse whatever this browser cached, possibly another account's unfiltered body.
+  if (transformJson) {
+    delete headers['if-none-match'];
+    delete headers['if-modified-since'];
+  }
 
   const upstreamReq = http.request({ host: '127.0.0.1', port, method: req.method, path: req.url, headers }, (upstreamRes) => {
     const contentType = String(upstreamRes.headers['content-type'] ?? '');

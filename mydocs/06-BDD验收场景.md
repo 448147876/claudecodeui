@@ -656,6 +656,22 @@ Feature: 普通账号不能通过界面或 API 修改所有账号共用的配置
   Scenario: POL-05 普通账号跳过首次引导 [自动] v4.3
     When projA 首次进入
     Then 引导已完成，不会停在需要保存全局 git 配置的步骤
+
+  Scenario: POL-06 仅管理员可见的插件对普通账号不可见 [自动] 2026-11-10
+    Given 共用插件目录中装有 agent-monitor 和另一个普通插件
+    When projA 获取插件列表，并请求 agent-monitor 的 manifest、assets、rpc（含大小写、重复斜杠、编码写法）和 /plugin-ws/agent-monitor
+    Then 列表中没有 agent-monitor，普通插件仍在
+    And 这些请求返回 403「该插件仅管理员可用」，WebSocket 被拒绝
+    And admin 的列表完整，manifest 和 WebSocket 正常
+
+  Scenario: POL-06b 普通账号页面隐藏推荐卡片 [自动] 2026-11-10
+    When projA 打开页面（jsdom 执行注入脚本），之前记住的 tab 是 plugin:agent-monitor
+    Then 指向 agent-monitor 仓库的推荐卡片被隐藏，其他推荐卡片不受影响
+    And 记住的 tab 改为 chat；其他插件的 tab 保持不变；admin 页面没有隐藏规则
+
+  Scenario: POL-07 名单完整，依赖的上游界面结构仍然存在 [自动] 2026-11-10
+    Then 名单为 agent-monitor、session-manager、task-queue、token-cost-calculator
+    And 推荐卡片外层仍是 border-dashed 的 div 并链接 recommendation.repoUrl，名单中的仓库地址仍在推荐列表中
 ```
 
 ---
@@ -737,9 +753,9 @@ Feature: 通过文件名、仓库配置、克隆地址、共用临时目录间�
 | 6 子进程 PROC | 13 | 11 | 2 |
 | 7 Claude 登录 CL | 2 | 1 | 1 |
 | 8 部署升级 UPG | 12 | 12 | 0 |
-| 9 全局配置保护 POL | 5 | 5 | 0 |
+| 9 全局配置保护 POL | 7 | 7 | 0 |
 | 10 间接越界加固 HARD | 10 | 10 | 0 |
-| **合计** | **96** | **85** | **11** |
+| **合计** | **98** | **87** | **11** |
 
 ---
 
@@ -758,5 +774,6 @@ Feature: 通过文件名、仓库配置、克隆地址、共用临时目录间�
 - 与 BDD 原文有出入的地方：
   - **WS-05**：`-w-projA-tmp` 一行属于已知限制 T-4，脚本不对它做断言；
   - **API-10**：上游只有 Skills 的列表接口接受 `workspacePath`，新增、删除只作用于用户级目录，因此只检查列表；
+- 仅管理员可见的插件（2026-11-10，`gateway/check/scenarios/policy.mjs`、`inject.mjs`，见 08 第 3.4 节）：POL-06 列表过滤与接口、WebSocket 拦截；POL-06b 推荐卡片隐藏规则（jsdom）；POL-07 名单与上游界面结构。卡片隐藏依赖 CSS `:has()`，需在真实浏览器里手工确认一次。
 - 用量控制（2026-11-10，`gateway/check/scenarios/usage.mjs`，见 08 第 3.3 节）：USE-01 计价、去重、增量读取、占比算法；USE-02 注入脚本标记页面并只拦会发送的回车（jsdom）；USE-03 上游界面结构仍在；USE-04 设置只有管理员可见可改。按钮隐藏依赖 CSS `:has()`，需在真实浏览器里手工确认一次。
 - 仍需手工验证（需要真实浏览器或真实的 Claude 登录）：WS-04、WS-06、SES-09、PROC-06、PROC-09、CL-01。

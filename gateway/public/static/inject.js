@@ -135,4 +135,22 @@
       event.stopPropagation();
     }, true);
   }
+
+  // 5. Admin-only plugins (mydocs/08 3.4): the gateway already leaves them out
+  //    of a member's plugin list. Hide their recommendation cards too (the
+  //    dashed card linking the repo, PluginSettingsTab.tsx) and drop a tab of
+  //    theirs this account had open before, which would now show nothing.
+  if (gw.role === 'member' && Array.isArray(gw.hiddenPlugins) && gw.hiddenPlugins.length) {
+    var pluginStyle = document.createElement('style');
+    pluginStyle.textContent = gw.hiddenPlugins.map(function (plugin) {
+      return 'div.border-dashed:has(a[href=' + JSON.stringify(plugin.repoUrl) + '])';
+    }).join(',') + '{display:none!important}';
+    document.head.appendChild(pluginStyle);
+    try {
+      var openTab = storage.getItem('activeTab');
+      if (gw.hiddenPlugins.some(function (plugin) { return openTab === 'plugin:' + plugin.name; })) storage.setItem('activeTab', 'chat');
+    } catch {
+      // Storage unavailable; upstream falls back to the chat tab itself.
+    }
+  }
 })();

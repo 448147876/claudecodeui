@@ -12,7 +12,7 @@ import { dataPaths, ensurePrivateDir, loadConfig, writePrivateFile } from './con
 import { createProcessManager } from './proc/manager.mjs';
 import { acquireGatewayLock, cleanupOrphans } from './proc/run-files.mjs';
 import { isBlocked, proxyHttp, wantsHtml } from './proxy/http.mjs';
-import { checkMemberRequest, memberResponseFilter, needsBody, readBody } from './proxy/member-policy.mjs';
+import { ADMIN_ONLY_PLUGINS, checkMemberRequest, isAdminOnlyPluginPath, memberResponseFilter, needsBody, readBody } from './proxy/member-policy.mjs';
 import { proxyUpgrade, rejectUpgrade } from './proxy/upgrade.mjs';
 import { createAccountStore, openDatabase } from './store/accounts.mjs';
 import { createBackup, restoreBackup } from './store/backup.mjs';
@@ -164,7 +164,12 @@ export async function startGateway(config = loadConfig()) {
       proto: requestProto(req, config),
       body,
       transformJson: account.role === 'member' ? memberResponseFilter(req) : null,
-      getBootstrap: async () => ({ account: account.username, role: account.role, token: await manager.getToken(account) }),
+      getBootstrap: async () => ({
+        account: account.username,
+        role: account.role,
+        token: await manager.getToken(account),
+        ...(account.role === 'member' ? { hiddenPlugins: ADMIN_ONLY_PLUGINS } : {}),
+      }),
       onError: (error) => {
         log(`${account.username}: proxy error ${req.method} ${req.url}: ${error.message}`);
         if (!res.headersSent) res.status(502).json({ error: 'Bad gateway' });
@@ -192,6 +197,7 @@ export async function startGateway(config = loadConfig()) {
     socket.on('error', () => socket.destroy());
     const account = currentAccount(req, ctx);
     if (!account) return rejectUpgrade(socket, 401, 'Unauthorized');
+    if (account.role === 'member' && isAdminOnlyPluginPath(req.url)) return rejectUpgrade(socket, 403, 'Forbidden');
     manager.ensureRunning(account).then((slot) => {
       if (socket.destroyed) return;
       proxyUpgrade(req, socket, head, {
