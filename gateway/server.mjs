@@ -17,6 +17,8 @@ import { proxyUpgrade, rejectUpgrade } from './proxy/upgrade.mjs';
 import { createAccountStore, openDatabase } from './store/accounts.mjs';
 import { createBackup, restoreBackup } from './store/backup.mjs';
 import { LATEST_SCHEMA } from './store/migrations.mjs';
+import { createUsageGate } from './usage/usage-gate.mjs';
+import { createUsageRouter } from './usage/routes.mjs';
 
 const log = (message) => console.log(`[gateway] ${new Date().toISOString()} ${message}`);
 
@@ -98,6 +100,7 @@ export async function startGateway(config = loadConfig()) {
     log,
     secret: loadOrCreateSecret(paths.secret),
     limiter: createRateLimiter({ maxFails: config.loginMaxFails, lockMs: config.loginLockMs }),
+    usageGate: createUsageGate({ config, store, log }),
   };
 
   const app = express();
@@ -105,6 +108,7 @@ export async function startGateway(config = loadConfig()) {
   app.use('/__gw/api', express.json({ limit: '64kb' }));
   app.use('/__gw', createAuthRouter(ctx));
   app.use('/__gw', createAdminRouter(ctx));
+  app.use('/__gw', createUsageRouter(ctx));
   app.use('/__gw', (req, res) => res.status(404).json({ error: 'not found' }));
 
   app.use(async (req, res) => {

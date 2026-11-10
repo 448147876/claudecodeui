@@ -18,6 +18,7 @@ import { policyScenarios } from './scenarios/policy.mjs';
 import { injectScenarios } from './scenarios/inject.mjs';
 import { apiScenarios, sessionScenarios, workspaceScenarios } from './scenarios/isolation.mjs';
 import { claudeScenarios, idleScenarios, lifecycleScenarios, processScenarios } from './scenarios/proc-upg.mjs';
+import { usageHttpScenarios, usageUnitScenarios } from './scenarios/usage.mjs';
 
 class SkipError extends Error {}
 
@@ -170,6 +171,8 @@ export async function runChecks(args = []) {
     await runList(featureScenarios, ctx);
     console.log('\n方案 B：普通账号不能修改全局配置');
     await runList(policyScenarios, ctx);
+    console.log('\n用量控制：设置只有管理员可见');
+    await runList(usageHttpScenarios, ctx);
     console.log('\n加固：.git 内部、Taskmaster 文档名、克隆来源、/tmp、MCP 默认目录');
     await runList(hardeningScenarios, ctx);
     await runList(globalProbeScenarios, ctx);
@@ -206,6 +209,8 @@ export async function runChecks(args = []) {
 
   console.log('\nAUTH：注入脚本（jsdom）');
   await runList(injectScenarios, ctx);
+  console.log('\nUSE：用量控制（计算、注入脚本、上游界面结构）');
+  await runList(usageUnitScenarios, ctx);
   console.log('\nUPG：静态检查与单元测试');
   await runList(scanScenarios, ctx);
   await runList(staticScenarios, ctx);

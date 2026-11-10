@@ -32,6 +32,23 @@
     <tbody id="rows"><tr><td colspan="6" class="muted">加载中…</td></tr></tbody>
   </table>
   <div class="error" id="listError"></div>
+
+  <h2 style="font-size:16px;margin:28px 0 0">用量控制</h2>
+  <p class="muted">按 Claude 会话记录估算花费（与 Claude Usage 插件同一张价格表，未知模型按 Opus 计）。某个普通账号目录在统计窗口内的花费 ÷ max(全部目录合计, 基准额度) 达到上限时，该账号界面隐藏发送、排队、定时按钮；只影响界面，不拦截后台。管理员不受限制。</p>
+  <form id="usageForm">
+    <div class="grid">
+      <div><label for="limitPercent">单目录占比上限（%）</label><input id="limitPercent" name="limitPercent" type="number" min="1" max="100" step="1" required></div>
+      <div><label for="windowHours">统计窗口（小时）</label><input id="windowHours" name="windowHours" type="number" min="1" max="24" step="0.5" required></div>
+      <div><label for="baselineUsd">窗口基准额度（美元）</label><input id="baselineUsd" name="baselineUsd" type="number" min="0" step="1" required></div>
+      <div><label for="usageEnabled">启用</label><select id="usageEnabled" name="enabled"><option value="true">启用</option><option value="false">关闭</option></select></div>
+    </div>
+    <div class="row" style="margin-top:14px"><button class="primary" type="submit">保存</button><span class="muted" id="usageDefaults"></span><span class="error" id="usageError"></span><span class="notice" id="usageNotice"></span></div>
+  </form>
+  <p class="muted" id="usageTotal"></p>
+  <table>
+    <thead><tr><th>用户名</th><th>工作目录</th><th>窗口内花费</th><th>占比</th><th>状态</th></tr></thead>
+    <tbody id="usageRows"><tr><td colspan="5" class="muted">加载中…</td></tr></tbody>
+  </table>
 </main>
 <script>
   const $ = (id) => document.getElementById(id);
@@ -114,8 +131,53 @@
     }
   });
 
+  const usd = (value) => `$${Number(value).toFixed(2)}`;
+  let usageFormFilled = false;
+  async function loadUsage() {
+    try {
+      const { settings, defaults, totalUsd, denominatorUsd, members } = await api('GET', '/__gw/api/usage-gate/settings');
+      const form = $('usageForm');
+      // Do not overwrite what the admin is typing on the periodic refresh.
+      if (!usageFormFilled) {
+        form.limitPercent.value = settings.limitPercent;
+        form.windowHours.value = settings.windowHours;
+        form.baselineUsd.value = settings.baselineUsd;
+        form.enabled.value = String(settings.enabled);
+        usageFormFilled = true;
+      }
+      $('usageDefaults').textContent = `默认：${defaults.limitPercent}% / ${defaults.windowHours} 小时 / ${usd(defaults.baselineUsd)}`;
+      $('usageTotal').textContent = `近 ${settings.windowHours} 小时全部目录合计 ${usd(totalUsd)}，按 ${usd(denominatorUsd)} 计算占比${settings.enabled ? '' : '（已关闭）'}`;
+      $('usageRows').innerHTML = members.length ? members.map((member) => `<tr><td>${escapeHtml(member.username)}</td><td><code>${escapeHtml(member.workspaceRoot)}</code></td><td>${usd(member.usedUsd)}</td><td>${member.percent.toFixed(1)}%</td><td>${member.blocked ? '<span class="badge failed">已暂停发送</span>' : '<span class="badge running">正常</span>'}</td></tr>`).join('') : '<tr><td colspan="5" class="muted">暂无普通账号</td></tr>';
+      $('usageError').textContent = '';
+    } catch (error) {
+      $('usageError').textContent = error.message;
+    }
+  }
+
+  $('usageForm').addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const form = event.target;
+    $('usageError').textContent = '';
+    $('usageNotice').textContent = '';
+    try {
+      await api('PUT', '/__gw/api/usage-gate/settings', {
+        enabled: form.enabled.value === 'true',
+        limitPercent: Number(form.limitPercent.value),
+        windowHours: Number(form.windowHours.value),
+        baselineUsd: Number(form.baselineUsd.value),
+      });
+      usageFormFilled = false;
+      $('usageNotice').textContent = '已保存，普通账号页面 1 分钟内生效';
+      loadUsage();
+    } catch (error) {
+      $('usageError').textContent = error.message;
+    }
+  });
+
   load();
   setInterval(load, 10000);
+  loadUsage();
+  setInterval(loadUsage, 30000);
 </script>
 </body>
 </html>

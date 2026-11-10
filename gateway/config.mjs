@@ -56,6 +56,7 @@ export const dataPaths = (config) => ({
   accountDb: (username) => path.join(config.dataRoot, 'accounts', username, 'auth.db'),
   accountLog: (username) => path.join(config.dataRoot, 'accounts', username, 'server.log'),
   runFile: (username) => path.join(config.dataRoot, 'run', `${username}.json`),
+  usageGate: path.join(config.dataRoot, 'usage-gate.json'),
 });
 
 /** Creates a directory (and parents) with owner-only permissions. */

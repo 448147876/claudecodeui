@@ -83,4 +83,56 @@
   }
   if (document.body) mountMenu();
   else document.addEventListener('DOMContentLoaded', mountMenu);
+
+  // 4. Usage gate (mydocs/08 3.3): while this member's workspace uses too large
+  //    a share of recent Claude usage, hide the composer's send, queue and
+  //    schedule buttons and swallow the Enter that would send. UI only; the
+  //    selectors are upstream's composer markup (PromptInput.tsx, lucide icons).
+  if (gw.role === 'member' && typeof fetch === 'function') {
+    var root = document.documentElement;
+    var COMPOSER = 'form[data-slot="prompt-input"]';
+    var gateStyle = document.createElement('style');
+    gateStyle.textContent = [
+      '.gw-usage-blocked ' + COMPOSER + ' button[type="submit"],',
+      '.gw-usage-blocked ' + COMPOSER + ' button:has(svg.lucide-arrow-up),',
+      '.gw-usage-blocked ' + COMPOSER + ' button:has(svg.lucide-clock){display:none!important}',
+      '.gw-usage-blocked ' + COMPOSER + '::before{content:var(--gw-usage-message);display:block;padding:6px 12px;font-size:12px;line-height:1.5;color:#9a6700;background:rgba(212,167,44,.15);border-bottom:1px solid rgba(212,167,44,.4)}',
+    ].join('');
+    document.head.appendChild(gateStyle);
+
+    var blocked = false;
+    var applyStatus = function (status) {
+      blocked = Boolean(status && status.blocked);
+      root.classList.toggle('gw-usage-blocked', blocked);
+      root.style.setProperty('--gw-usage-message', JSON.stringify((status && status.message) || ''));
+    };
+    var checkUsage = function () {
+      if (document.hidden) return;
+      fetch('/__gw/api/usage-gate', { credentials: 'same-origin', cache: 'no-store' })
+        .then(function (response) { return response.ok ? response.json() : null; })
+        .then(applyStatus, function () { applyStatus(null); });
+    };
+    checkUsage();
+    setInterval(checkUsage, 60000);
+    document.addEventListener('visibilitychange', checkUsage);
+
+    // Mirrors upstream's Enter handling (useChatComposerState handleKeyDown).
+    var sendsWithCtrlEnter = function () {
+      try {
+        var value = JSON.parse(storage.getItem('user-preferences') || '{}').uiPreferences.sendByCtrlEnter;
+        return value === true || value === 'true';
+      } catch {
+        return false;
+      }
+    };
+    document.addEventListener('keydown', function (event) {
+      if (!blocked || event.key !== 'Enter' || event.isComposing || event.keyCode === 229) return;
+      if (!event.target || !event.target.matches || !event.target.matches(COMPOSER + ' textarea')) return;
+      var modifier = event.ctrlKey || event.metaKey;
+      var sends = (modifier && !event.shiftKey) || (!modifier && !event.shiftKey && !sendsWithCtrlEnter());
+      if (!sends) return;
+      event.preventDefault();
+      event.stopPropagation();
+    }, true);
+  }
 })();
