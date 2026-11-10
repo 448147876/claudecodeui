@@ -60,11 +60,6 @@
       "views": "Přepínači zobrazení můžete přepínat mezi zobrazením Kanban, seznamem a mřížkou",
       "filters": "Pomocí filtrů se zaměřte na konkrétní stavy nebo priority úkolů",
       "details": "Kliknutím na úkol zobrazíte podrobnosti a můžete spravovat dílčí úkoly"
-    },
-    "learnMore": {
-      "title": "📚 Další informace",
-      "description": "TaskMaster AI je pokročilý systém pro správu úkolů určený vývojářům. Najdete zde dokumentaci a příklady a můžete do projektu přispět.",
-      "githubButton": "Zobrazit na GitHubu"
     }
   },
   "search": {

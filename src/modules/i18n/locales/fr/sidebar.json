@@ -20,7 +20,7 @@
     "runClaudeCli": "Exécutez le CLI Claude dans un répertoire de projet pour commencer"
   },
   "app": {
-    "title": "CloudCLI",
+    "title": "Claude",
     "subtitle": "Interface d'assistant de codage IA"
   },
   "sessions": {
@@ -74,12 +74,7 @@
     "save": "Enregistrer",
     "delete": "Supprimer",
     "rename": "Renommer",
-    "joinCommunity": "Rejoindre la communauté",
-    "reportIssue": "Signaler un problème",
     "starOnGithub": "Étoile sur GitHub"
-  },
-  "branding": {
-    "openSource": "Open Source"
   },
   "status": {
     "active": "Actif",

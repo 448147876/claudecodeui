@@ -515,7 +515,7 @@
     },
     "managed": {
       "badge": "Spravováno",
-      "hint": "Spravuje CloudCLI."
+      "hint": "Spravuje Claude."
     },
     "help": {
       "title": "O MCP pro Codex",
@@ -572,7 +572,7 @@
     "prismCloudCLI": {
       "name": "PRISM CloudCLI",
       "badge": "neoficiální",
-      "description": "Analýza relací Claude Code přímo v CloudCLI. Zjistěte, proč vaše relace spalují tokeny, aniž byste opustili prohlížeč.",
+      "description": "Analýza relací Claude Code přímo v Claude. Zjistěte, proč vaše relace spalují tokeny, aniž byste opustili prohlížeč.",
       "install": "Instalovat"
     },
     "sessionManagerPlugin": {
@@ -783,11 +783,6 @@
     "configCwd": "Cwd",
     "configEnvVars": "Proměnné prostředí"
   },
-  "mcpTeamCard": {
-    "title": "Týmové konfigurace MCP",
-    "description": "Sdílejte konfigurace MCP serverů v rámci týmu. Všichni budou mít vše automaticky synchronizované.",
-    "proLink": "K dispozici v CloudCLI Pro"
-  },
   "mcpServersAddErrors": {
     "loadFailedProvider": "Nepodařilo se načíst MCP servery pro {{provider}}",
     "deleteFailed": "Nepodařilo se smazat MCP server",
@@ -801,17 +796,6 @@
   },
   "about": {
     "tagline": "Open-source rozhraní pro AI asistenty programování",
-    "starOnGitHub": "Dát hvězdičku na GitHubu",
-    "docs": "Dokumentace",
-    "hostedTitle": "Vyzkoušejte CloudCLI Hosted",
-    "hostedDescription": "Týmová spolupráce, sdílené konfigurace MCP, synchronizace nastavení napříč prostředími a spravovaná infrastruktura.",
-    "learnMore": "Další informace",
-    "proFeaturesTitle": "Funkce CloudCLI Pro",
-    "syncSettingsTitle": "Synchronizace nastavení",
-    "syncSettingsDescription": "Mějte předvolby, konfigurace MCP a motiv synchronizované ve všech svých prostředích.",
-    "teamManagementTitle": "Správa týmu",
-    "teamManagementDescription": "Více uživatelů, přístup podle rolí a sdílené projekty pro váš tým.",
-    "licensed": "Šířeno pod licencí AGPL-3.0",
-    "proCta": "K dispozici v CloudCLI Pro"
+    "licensed": "Šířeno pod licencí AGPL-3.0"
   }
 }

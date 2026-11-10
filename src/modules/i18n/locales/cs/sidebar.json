@@ -20,7 +20,7 @@
     "runClaudeCli": "Začněte spuštěním Claude CLI v adresáři projektu"
   },
   "app": {
-    "title": "CloudCLI",
+    "title": "Claude",
     "subtitle": "Rozhraní AI asistenta pro programování"
   },
   "sessions": {
@@ -70,12 +70,7 @@
     "save": "Uložit",
     "delete": "Smazat",
     "rename": "Přejmenovat",
-    "joinCommunity": "Připojit se ke komunitě",
-    "reportIssue": "Nahlásit problém",
     "starOnGithub": "Dát hvězdičku na GitHubu"
-  },
-  "branding": {
-    "openSource": "Open source"
   },
   "status": {
     "active": "Aktivní",

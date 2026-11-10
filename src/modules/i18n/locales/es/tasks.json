@@ -60,11 +60,6 @@
       "views": "Cambia entre las vistas Kanban, Lista y Cuadrícula con los selectores de vista",
       "filters": "Usa los filtros para centrarte en estados o prioridades específicas",
       "details": "Haz clic en cualquier tarea para ver información detallada y gestionar subtareas"
-    },
-    "learnMore": {
-      "title": "📚 Más información",
-      "description": "TaskMaster AI es un sistema avanzado de gestión de tareas creado para desarrolladores. Consulta la documentación, ejemplos y contribuye al proyecto.",
-      "githubButton": "Ver en GitHub"
     }
   },
   "search": {

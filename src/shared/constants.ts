@@ -20,6 +20,12 @@ type GitStatusFileGroup = 'modified' | 'added' | 'deleted' | 'untracked';
 //----------------- BRANDING ------------
 
 /**
+ * cloudcli-multi: product name shown wherever upstream showed "CloudCLI" as plain
+ * text (page title, loading screen, about tab, logo alt). Identical in every language.
+ */
+export const APP_BRAND_NAME = 'Claude';
+
+/**
  * Font stack used to render the CloudCLI wordmark consistently wherever the brand name
  * appears as text. Apply it inline so the wordmark does not inherit a themed font.
  */

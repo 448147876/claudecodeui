@@ -60,11 +60,6 @@
       "views": "Passa tra le viste Kanban, Lista e Griglia usando i selettori di vista",
       "filters": "Usa i filtri per concentrarti su stati o priorità specifiche delle attività",
       "details": "Clicca su qualsiasi attività per vedere informazioni dettagliate e gestire le sotto-attività"
-    },
-    "learnMore": {
-      "title": "📚 Per saperne di più",
-      "description": "TaskMaster AI è un sistema avanzato di gestione attività pensato per sviluppatori. Trova documentazione, esempi e contribuisci al progetto.",
-      "githubButton": "Vedi su GitHub"
     }
   },
   "search": {

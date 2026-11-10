@@ -536,7 +536,7 @@
     },
     "managed": {
       "badge": "Dikelola",
-      "hint": "Dikelola oleh CloudCLI."
+      "hint": "Dikelola oleh Claude."
     },
     "help": {
       "title": "Tentang MCP Codex",
@@ -593,7 +593,7 @@
     "prismCloudCLI": {
       "name": "PRISM CloudCLI",
       "badge": "tidak resmi",
-      "description": "Intelijen sesi untuk Claude Code di dalam CloudCLI. Lihat penyebab penggunaan token tinggi tanpa meninggalkan browser.",
+      "description": "Intelijen sesi untuk Claude Code di dalam Claude. Lihat penyebab penggunaan token tinggi tanpa meninggalkan browser.",
       "install": "Instal"
     },
     "sessionManagerPlugin": {
@@ -792,11 +792,6 @@
     "configCwd": "Cwd",
     "configEnvVars": "Env Vars"
   },
-  "mcpTeamCard": {
-    "title": "Konfigurasi MCP Tim",
-    "description": "Bagikan konfigurasi server MCP di seluruh tim. Semua anggota tetap tersinkron otomatis.",
-    "proLink": "Tersedia dengan CloudCLI Pro"
-  },
   "mcpServersAddErrors": {
     "loadFailedProvider": "Gagal memuat server MCP {{provider}}",
     "deleteFailed": "Gagal menghapus server MCP",
@@ -810,17 +805,6 @@
   },
   "about": {
     "tagline": "Antarmuka asisten coding AI open source",
-    "starOnGitHub": "Beri Bintang di GitHub",
-    "docs": "Dokumentasi",
-    "hostedTitle": "Coba CloudCLI Hosted",
-    "hostedDescription": "Kolaborasi tim, konfigurasi MCP bersama, sinkronisasi pengaturan antar-environment, dan infrastruktur terkelola.",
-    "learnMore": "Pelajari lebih lanjut",
-    "proFeaturesTitle": "Fitur CloudCLI Pro",
-    "syncSettingsTitle": "Sinkronkan Pengaturan",
-    "syncSettingsDescription": "Jaga preferensi, konfigurasi MCP, dan tema tetap sinkron di semua environment.",
-    "teamManagementTitle": "Manajemen Tim",
-    "teamManagementDescription": "Banyak pengguna, akses berbasis peran, dan proyek bersama untuk tim.",
-    "licensed": "Dilisensikan di bawah AGPL-3.0",
-    "proCta": "Tersedia dengan CloudCLI Pro"
+    "licensed": "Dilisensikan di bawah AGPL-3.0"
   }
 }

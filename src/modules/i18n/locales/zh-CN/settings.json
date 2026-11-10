@@ -519,7 +519,7 @@
     },
     "managed": {
       "badge": "已托管",
-      "hint": "由 CloudCLI 管理。"
+      "hint": "由 Claude 管理。"
     },
     "help": {
       "title": "关于 Codex MCP",
@@ -576,7 +576,7 @@
     "prismCloudCLI": {
       "name": "PRISM CloudCLI",
       "badge": "非官方",
-      "description": "CloudCLI 内的 Claude Code 会话智能分析。无需离开浏览器即可了解会话为何消耗大量 Token。",
+      "description": "Claude 内的 Claude Code 会话智能分析。无需离开浏览器即可了解会话为何消耗大量 Token。",
       "install": "安装"
     },
     "sessionManagerPlugin": {

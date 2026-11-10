@@ -60,11 +60,6 @@
       "views": "Kanban, Liste ve Izgara görünümleri arasında geçiş yapmak için görünüm düğmelerini kullan",
       "filters": "Belirli görev durumlarına veya önceliklere odaklanmak için filtreleri kullan",
       "details": "Detaylı bilgi görmek ve alt görevleri yönetmek için herhangi bir göreve tıkla"
-    },
-    "learnMore": {
-      "title": "📚 Daha Fazla Öğren",
-      "description": "TaskMaster AI, geliştiriciler için inşa edilmiş ileri seviye bir görev yönetim sistemidir. Dokümantasyona, örneklere bak ve projeye katkıda bulun.",
-      "githubButton": "GitHub'da Görüntüle"
     }
   },
   "search": {

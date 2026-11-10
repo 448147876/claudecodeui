@@ -519,7 +519,7 @@
     },
     "managed": {
       "badge": "관리됨",
-      "hint": "CloudCLI가 관리합니다."
+      "hint": "Claude가 관리합니다."
     },
     "help": {
       "title": "Codex MCP 정보",
@@ -576,7 +576,7 @@
     "prismCloudCLI": {
       "name": "PRISM CloudCLI",
       "badge": "비공식",
-      "description": "CloudCLI 안에서 제공되는 Claude Code용 세션 인텔리전스입니다. 브라우저를 벗어나지 않고도 세션에서 토큰이 왜 소모되는지 확인하세요.",
+      "description": "Claude 안에서 제공되는 Claude Code용 세션 인텔리전스입니다. 브라우저를 벗어나지 않고도 세션에서 토큰이 왜 소모되는지 확인하세요.",
       "install": "설치"
     },
     "sessionManagerPlugin": {

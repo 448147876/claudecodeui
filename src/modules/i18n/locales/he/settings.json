@@ -535,7 +535,7 @@
     },
     "managed": {
       "badge": "מנוהל",
-      "hint": "מנוהל על ידי CloudCLI."
+      "hint": "מנוהל על ידי Claude."
     },
     "help": {
       "title": "על Codex MCP",
@@ -592,7 +592,7 @@
     "prismCloudCLI": {
       "name": "PRISM CloudCLI",
       "badge": "לא רשמי",
-      "description": "ניתוח סשנים של Claude Code בתוך CloudCLI. אפשר לראות למה הסשנים צורכים טוקנים בלי לצאת מהדפדפן.",
+      "description": "ניתוח סשנים של Claude Code בתוך Claude. אפשר לראות למה הסשנים צורכים טוקנים בלי לצאת מהדפדפן.",
       "install": "התקנה"
     },
     "sessionManagerPlugin": {
@@ -800,11 +800,6 @@
     "configCwd": "Cwd",
     "configEnvVars": "משתני סביבה"
   },
-  "mcpTeamCard": {
-    "title": "תצורות MCP לצוות",
-    "description": "שיתוף תצורות שרתי MCP עם כל הצוות. כולם נשארים מסונכרנים אוטומטית.",
-    "proLink": "זמין ב-CloudCLI Pro"
-  },
   "mcpServersAddErrors": {
     "loadFailedProvider": "טעינת שרתי ה-MCP של {{provider}} נכשלה",
     "deleteFailed": "מחיקת שרת ה-MCP נכשלה",
@@ -818,17 +813,6 @@
   },
   "about": {
     "tagline": "ממשק קוד פתוח לעוזר תכנות מבוסס AI",
-    "starOnGitHub": "כוכב ב-GitHub",
-    "docs": "תיעוד",
-    "hostedTitle": "לנסות את CloudCLI Hosted",
-    "hostedDescription": "שיתוף פעולה בצוות, תצורות MCP משותפות, סנכרון הגדרות בין סביבות ותשתית מנוהלת.",
-    "learnMore": "מידע נוסף",
-    "proFeaturesTitle": "יכולות CloudCLI Pro",
-    "syncSettingsTitle": "סנכרון הגדרות",
-    "syncSettingsDescription": "ההעדפות, תצורות ה-MCP וערכת הנושא נשארים מסונכרנים בכל הסביבות.",
-    "teamManagementTitle": "ניהול צוות",
-    "teamManagementDescription": "משתמשים מרובים, גישה מבוססת תפקידים ופרויקטים משותפים לצוות.",
-    "licensed": "ברישיון AGPL-3.0",
-    "proCta": "זמין ב-CloudCLI Pro"
+    "licensed": "ברישיון AGPL-3.0"
   }
 }

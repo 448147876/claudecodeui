@@ -60,11 +60,6 @@
       "views": "Beralih antara tampilan Kanban, Daftar, dan Grid menggunakan tombol tampilan",
       "filters": "Gunakan filter untuk berfokus pada status atau prioritas tugas tertentu",
       "details": "Klik tugas untuk melihat informasi terperinci dan mengelola subtugas"
-    },
-    "learnMore": {
-      "title": "📚 Pelajari Lebih Lanjut",
-      "description": "TaskMaster AI adalah sistem manajemen tugas lanjutan yang dibuat untuk developer. Dapatkan dokumentasi, contoh, dan berkontribusi ke proyek.",
-      "githubButton": "Lihat di GitHub"
     }
   },
   "search": {

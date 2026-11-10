@@ -60,11 +60,6 @@
       "views": "Wechsle mit den Ansichts-Umschaltern zwischen Kanban-, Listen- und Rasteransicht",
       "filters": "Verwende Filter, um dich auf bestimmte Aufgabenstatus oder Prioritäten zu konzentrieren",
       "details": "Klicke auf eine Aufgabe, um detaillierte Informationen anzuzeigen und Unteraufgaben zu verwalten"
-    },
-    "learnMore": {
-      "title": "📚 Mehr erfahren",
-      "description": "TaskMaster AI ist ein fortschrittliches Aufgabenmanagementsystem für Entwickler:innen. Dokumentation, Beispiele und Möglichkeiten zur Mitarbeit am Projekt.",
-      "githubButton": "Auf GitHub ansehen"
     }
   },
   "search": {

@@ -20,7 +20,7 @@
     "runClaudeCli": "Jalankan Claude CLI di direktori proyek untuk memulai"
   },
   "app": {
-    "title": "CloudCLI",
+    "title": "Claude",
     "subtitle": "Antarmuka asisten coding AI"
   },
   "sessions": {
@@ -74,12 +74,7 @@
     "save": "Simpan",
     "delete": "Hapus",
     "rename": "Ganti Nama",
-    "joinCommunity": "Gabung Komunitas",
-    "reportIssue": "Laporkan Masalah",
     "starOnGithub": "Beri Bintang di GitHub"
-  },
-  "branding": {
-    "openSource": "Open Source"
   },
   "status": {
     "active": "Aktif",

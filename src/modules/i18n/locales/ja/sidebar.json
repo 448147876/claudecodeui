@@ -20,7 +20,7 @@
     "runClaudeCli": "プロジェクトディレクトリでClaude CLIを実行して始めましょう"
   },
   "app": {
-    "title": "CloudCLI",
+    "title": "Claude",
     "subtitle": "AIコーディングアシスタント"
   },
   "sessions": {
@@ -72,12 +72,7 @@
     "save": "保存",
     "delete": "削除",
     "rename": "名前の変更",
-    "joinCommunity": "コミュニティに参加",
-    "reportIssue": "問題を報告",
     "starOnGithub": "GitHubでスター"
-  },
-  "branding": {
-    "openSource": "オープンソース"
   },
   "status": {
     "active": "アクティブ",

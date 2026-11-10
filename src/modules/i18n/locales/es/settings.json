@@ -550,7 +550,7 @@
     },
     "managed": {
       "badge": "Gestionado",
-      "hint": "Gestionado por CloudCLI."
+      "hint": "Gestionado por Claude."
     },
     "help": {
       "title": "Acerca de MCP en Codex",
@@ -607,7 +607,7 @@
     "prismCloudCLI": {
       "name": "PRISM CloudCLI",
       "badge": "no oficial",
-      "description": "Inteligencia de sesiones para Claude Code, dentro de CloudCLI. Descubre por qué tus sesiones queman tokens sin salir del navegador.",
+      "description": "Inteligencia de sesiones para Claude Code, dentro de Claude. Descubre por qué tus sesiones queman tokens sin salir del navegador.",
       "install": "Instalar"
     },
     "sessionManagerPlugin": {
@@ -821,11 +821,6 @@
     "configCwd": "Directorio",
     "configEnvVars": "Variables"
   },
-  "mcpTeamCard": {
-    "title": "Configuraciones MCP del equipo",
-    "description": "Comparte la configuración de los servidores MCP con tu equipo. Todos se mantienen sincronizados.",
-    "proLink": "Disponible con CloudCLI Pro"
-  },
   "mcpServersAddErrors": {
     "loadFailedProvider": "No se pudieron cargar los servidores MCP de {{provider}}",
     "deleteFailed": "No se pudo eliminar el servidor MCP",
@@ -839,17 +834,6 @@
   },
   "about": {
     "tagline": "Interfaz de código abierto para asistentes de programación con IA",
-    "starOnGitHub": "Dar estrella en GitHub",
-    "docs": "Docs",
-    "hostedTitle": "Prueba CloudCLI Hosted",
-    "hostedDescription": "Colaboración en equipo, configuraciones MCP compartidas, sincronización de ajustes entre entornos e infraestructura gestionada.",
-    "learnMore": "Más información",
-    "proFeaturesTitle": "Funciones de CloudCLI Pro",
-    "syncSettingsTitle": "Sincronizar ajustes",
-    "syncSettingsDescription": "Mantén tus preferencias, configuraciones MCP y el tema sincronizados en todos tus entornos.",
-    "teamManagementTitle": "Gestión del equipo",
-    "teamManagementDescription": "Varios usuarios, acceso por roles y proyectos compartidos para tu equipo.",
-    "licensed": "Con licencia AGPL-3.0",
-    "proCta": "Disponible con CloudCLI Pro"
+    "licensed": "Con licencia AGPL-3.0"
   }
 }

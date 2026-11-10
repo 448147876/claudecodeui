@@ -60,11 +60,6 @@
       "views": "使用视图切换在看板、列表和网格视图之间切换",
       "filters": "使用筛选器聚焦特定任务状态或优先级",
       "details": "点击任何任务以查看详细信息和管理子任务"
-    },
-    "learnMore": {
-      "title": "📚 了解更多",
-      "description": "TaskMaster AI 是为开发者打造的高级任务管理系统。获取文档、示例并为项目做出贡献。",
-      "githubButton": "在 GitHub 上查看"
     }
   },
   "search": {

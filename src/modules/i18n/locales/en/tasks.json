@@ -60,11 +60,6 @@
       "views": "Switch between Kanban, List, and Grid views using the view toggles",
       "filters": "Use filters to focus on specific task statuses or priorities",
       "details": "Click on any task to view detailed information and manage subtasks"
-    },
-    "learnMore": {
-      "title": "📚 Learn More",
-      "description": "TaskMaster AI is an advanced task management system built for developers. Get documentation, examples, and contribute to the project.",
-      "githubButton": "View on GitHub"
     }
   },
   "search": {

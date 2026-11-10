@@ -551,7 +551,7 @@
     "prismCloudCLI": {
       "name": "PRISM CloudCLI",
       "badge": "non officiel",
-      "description": "Intelligence de session pour Claude Code, dans CloudCLI. Voyez pourquoi vos sessions consomment des tokens sans quitter le navigateur.",
+      "description": "Intelligence de session pour Claude Code, dans Claude. Voyez pourquoi vos sessions consomment des tokens sans quitter le navigateur.",
       "install": "Installer"
     },
     "sessionManagerPlugin": {
