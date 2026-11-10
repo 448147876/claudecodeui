@@ -49,8 +49,9 @@ switch (command) {
   }
   case 'check': {
     const { runChecks } = await import('./check/run.mjs');
-    process.exitCode = await runChecks(args);
-    break;
+    // Exit explicitly: `update --check` restarts the service only after this
+    // returns, so a handle leaked by a scenario must not keep it stopped.
+    process.exit(await runChecks(args));
   }
   case 'backups':
     for (const name of listBackups(config)) console.log(name);

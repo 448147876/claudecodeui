@@ -65,8 +65,11 @@ export const usageUnitScenarios = [
     } catch {
       ctx.skip('未安装 jsdom（开发依赖）');
     }
+    // inject.js polls the gate with setInterval; open windows keep the check process alive.
+    const doms = [];
     const run = async (role, preferences) => {
       const dom = new JSDOM('<!doctype html><html><head></head><body><form data-slot="prompt-input"><textarea data-slot="prompt-input-textarea"></textarea></form></body></html>', { url: 'http://gateway.test/', runScripts: 'outside-only', pretendToBeVisual: true });
+      doms.push(dom);
       const requests = [];
       dom.window.fetch = (url) => {
         requests.push(url);
@@ -86,20 +89,24 @@ export const usageUnitScenarios = [
       return { dom, requests, press };
     };
 
-    const member = await run('member');
-    assert.deepEqual(member.requests, ['/__gw/api/usage-gate']);
-    assert.ok(member.dom.window.document.documentElement.classList.contains('gw-usage-blocked'));
-    assert.equal(member.press({}), true, 'Enter would send: swallowed');
-    assert.equal(member.press({ shiftKey: true }), false, 'Shift+Enter is a newline');
-    assert.equal(member.press({ isComposing: true }), false, 'IME confirmation passes');
+    try {
+      const member = await run('member');
+      assert.deepEqual(member.requests, ['/__gw/api/usage-gate']);
+      assert.ok(member.dom.window.document.documentElement.classList.contains('gw-usage-blocked'));
+      assert.equal(member.press({}), true, 'Enter would send: swallowed');
+      assert.equal(member.press({ shiftKey: true }), false, 'Shift+Enter is a newline');
+      assert.equal(member.press({ isComposing: true }), false, 'IME confirmation passes');
 
-    const ctrlEnter = await run('member', { sendByCtrlEnter: true });
-    assert.equal(ctrlEnter.press({}), false, 'plain Enter is a newline in Ctrl+Enter mode');
-    assert.equal(ctrlEnter.press({ ctrlKey: true }), true);
+      const ctrlEnter = await run('member', { sendByCtrlEnter: true });
+      assert.equal(ctrlEnter.press({}), false, 'plain Enter is a newline in Ctrl+Enter mode');
+      assert.equal(ctrlEnter.press({ ctrlKey: true }), true);
 
-    const admin = await run('admin');
-    assert.deepEqual(admin.requests, [], 'admin is never gated');
-    assert.equal(admin.press({}), false);
+      const admin = await run('admin');
+      assert.deepEqual(admin.requests, [], 'admin is never gated');
+      assert.equal(admin.press({}), false);
+    } finally {
+      for (const dom of doms) dom.window.close();
+    }
   }],
 
   ['USE-03', '用量控制依赖的上游界面结构仍然存在（变化时需同步修改 inject.js 第 4 段）', async () => {

@@ -76,6 +76,7 @@ const REVIEWED_HOME_FILES = [
   'server/modules/cli/cli.module.ts',
   'server/modules/commands/commands.routes.ts',
   'server/modules/plugins/plugin-registry.service.ts',
+  'server/modules/projects/services/project-delete.service.ts',
   'server/modules/providers/list/claude/claude-auth.provider.ts',
   'server/modules/providers/list/claude/claude-mcp.provider.ts',
   'server/modules/providers/list/claude/claude-runtime.provider.js',
@@ -162,7 +163,7 @@ export const staticScenarios = [
       const base = process.env.CLOUDCLI_MULTI_UPSTREAM_BASE || 'HEAD';
       const tracked = git(APP_ROOT, 'diff', '--name-only', base).split('\n');
       const untracked = git(APP_ROOT, 'ls-files', '--others', '--exclude-standard').split('\n');
-      changed = [...new Set([...tracked, ...untracked])].filter((file) => file && !file.startsWith('gateway/') && !file.startsWith('mydocs/') && !/^(node_modules|dist|dist-server|database)(\/|$)/.test(file));
+      changed = [...new Set([...tracked, ...untracked])].filter((file) => file && !file.startsWith('gateway/') && !file.startsWith('mydocs/') && !/^(node_modules|dist|dist-server|database|\.worktree)(\/|$)/.test(file));
     } catch {
       ctx.skip('不是 git 仓库');
     }
