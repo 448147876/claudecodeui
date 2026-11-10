@@ -13,15 +13,59 @@ import { DEFAULT_EFFORT_VALUE } from '@/shared/constants';
 import { readSelectedProvider, writeSelectedProvider } from '@/shared/selectedProvider';
 
 const FALLBACK_PROVIDER_EFFORT_VALUES: Partial<Record<LLMProvider, readonly string[]>> = {
-  // Superset used only before the model catalog loads; `ultracode` belongs to the
-  // xhigh-capable models alone, but listing it here keeps a stored ultracode
-  // selection from being reset during catalog hydration.
-  claude: ['low', 'medium', 'high', 'xhigh', 'max', 'ultracode'],
+  // Superset used only before the model catalog loads. `max` and `ultracode`
+  // are hidden from the UI (see HIDDEN_CLAUDE_EFFORT_VALUES).
+  claude: ['low', 'medium', 'high', 'xhigh'],
   // Superset used only before the model catalog loads. Per-model metadata
   // narrows this once available; including the GPT-5.6 tiers here prevents a
   // valid Max/Ultra selection from being reset during catalog hydration.
   codex: ['low', 'medium', 'high', 'xhigh', 'max', 'ultra'],
   opencode: ['none', 'low', 'medium', 'high', 'xhigh', 'max'],
+};
+
+// cloudcli-multi: Claude models and effort levels the server still serves but
+// the UI must not offer. Hiding is client-only: the backend keeps accepting them.
+const HIDDEN_CLAUDE_MODEL_VALUES = new Set(['fable', 'best']);
+const HIDDEN_CLAUDE_EFFORT_VALUES = new Set(['max', 'ultracode']);
+const HIDDEN_EFFORT_FALLBACK_DEFAULT = 'high';
+
+/**
+ * Strips the hidden Claude models and effort levels from a catalog before it is
+ * stored, so every picker fed by `providerModelCatalog` (composer, new-chat
+ * screen, /model modal, model library) stops offering them. Stored selections
+ * of a hidden value then reconcile back to the default.
+ */
+const hideRestrictedProviderOptions = (
+  targetProvider: LLMProvider,
+  models: ProviderModelsDefinition,
+): ProviderModelsDefinition => {
+  if (targetProvider !== 'claude') {
+    return models;
+  }
+
+  const options = models.OPTIONS
+    .filter((option) => !HIDDEN_CLAUDE_MODEL_VALUES.has(option.value))
+    .map((option) => {
+      if (!option.effort) {
+        return option;
+      }
+      const values = option.effort.values.filter((value) => !HIDDEN_CLAUDE_EFFORT_VALUES.has(value.value));
+      // A hidden default falls back to `high`, or the strongest remaining level
+      // when the model does not declare `high`.
+      const effortDefault = option.effort.default && HIDDEN_CLAUDE_EFFORT_VALUES.has(option.effort.default)
+        ? values.find((value) => value.value === HIDDEN_EFFORT_FALLBACK_DEFAULT)?.value ?? values.at(-1)?.value
+        : option.effort.default;
+      return { ...option, effort: { ...option.effort, values, default: effortDefault } };
+    });
+
+  return {
+    ...models,
+    OPTIONS: options,
+    DEFAULT: options.some((option) => option.value === models.DEFAULT)
+      ? models.DEFAULT
+      : options[0]?.value ?? models.DEFAULT,
+    EFFORT_LEVELS: models.EFFORT_LEVELS?.filter((level) => !HIDDEN_CLAUDE_EFFORT_VALUES.has(level)),
+  };
 };
 
 const toProviderEffortOptions = (
@@ -205,7 +249,7 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
               return;
             }
 
-            setProviderModelCatalog((previous) => ({ ...previous, [p]: models }));
+            setProviderModelCatalog((previous) => ({ ...previous, [p]: hideRestrictedProviderOptions(p, models) }));
           } catch (error) {
             console.error(`Error loading ${p} models:`, error);
           }
@@ -701,7 +745,7 @@ export function useChatProviderState({ selectedSession, selectedProject: _select
   ) => {
     setProviderModelCatalog((previous) => ({
       ...previous,
-      [targetProvider]: models,
+      [targetProvider]: hideRestrictedProviderOptions(targetProvider, models),
     }));
   }, []);
 

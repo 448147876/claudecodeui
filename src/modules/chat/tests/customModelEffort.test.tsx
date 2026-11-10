@@ -51,6 +51,18 @@ const CATALOG: Partial<Record<LLMProvider, ProviderModelsDefinition>> = {
           values: [{ value: 'low' }, { value: 'high' }, { value: 'xhigh' }, { value: 'max' }],
         },
       },
+      {
+        value: 'fable',
+        label: 'Fable 5',
+        isCustom: false,
+        effort: { default: 'max', values: [{ value: 'high' }, { value: 'max' }, { value: 'ultracode' }] },
+      },
+      {
+        value: 'best',
+        label: 'Best available',
+        isCustom: false,
+        effort: { default: 'high', values: [{ value: 'high' }, { value: 'max' }] },
+      },
       CUSTOM_CLAUDE_MODEL,
     ],
     DEFAULT: 'default',
@@ -202,4 +214,24 @@ test('the composer offers exactly the declared levels for a selected custom mode
   assert.equal(result.current.provider, 'claude');
   assert.equal(result.current.currentProviderModel, 'my-custom-model');
   assert.deepEqual(result.current.currentProviderEffortOptions, [{ value: 'low' }, { value: 'high' }]);
+});
+
+test('the composer hides Fable, Best and the max/ultracode effort levels for Claude', async () => {
+  localStorage.setItem('claude-model', 'fable');
+  localStorage.setItem('claude-effort', 'max');
+  const { useChatProviderState } = await import('@/modules/chat/hooks/useChatProviderState');
+  const { result } = renderHook(() => useChatProviderState({ selectedSession: null, selectedProject: null }));
+
+  await waitFor(() => assert.equal(result.current.providerModelsLoading, false));
+  const claudeCatalog = result.current.providerModelCatalog.claude;
+  assert.deepEqual(claudeCatalog?.OPTIONS.map((option) => option.value), ['default', 'opus', 'my-custom-model']);
+  assert.deepEqual(claudeCatalog?.EFFORT_LEVELS, ['low', 'medium', 'high', 'xhigh']);
+
+  // A stored hidden model and effort fall back to the defaults.
+  await waitFor(() => assert.equal(result.current.currentProviderModel, 'default'));
+  assert.deepEqual(result.current.currentProviderEffortOptions, [{ value: 'low' }, { value: 'medium' }, { value: 'high' }]);
+  await waitFor(() => assert.equal(localStorage.getItem('claude-effort'), 'default'));
+
+  // Other providers keep their max level.
+  assert.ok(result.current.providerModelCatalog.opencode?.EFFORT_LEVELS?.includes('max'));
 });
